@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sync generated/lvgl_python.c, lv_conf.h, python/display_driver.py, and the lvgl submodule pin
+# Sync generated/lvgl_python.c, lv_conf.h, python/display_driver.py, python/fs_driver.py, and the lvgl submodule pin
 # from PyDevices/lvgl-bindings
 # on GitHub (not the local workspace).
 #
@@ -45,8 +45,8 @@ echo "Fetching ${LV_BINDINGS_REPO} @ ${REF}..."
 echo "(using temp clone ${TMP}/lvgl-bindings — removed on exit)"
 git clone --filter=blob:none --no-checkout "${LV_BINDINGS_REPO}" "${TMP}/lvgl-bindings"
 
-echo "Checking out generated/lvgl_python.c, generated/lvgl.pyi, lv_conf.h, and python/display_driver.py..."
-git -C "${TMP}/lvgl-bindings" checkout "${REF}" -- generated/lvgl_python.c generated/lvgl.pyi lv_conf.h python/display_driver.py
+echo "Checking out generated/lvgl_python.c, generated/lvgl.pyi, lv_conf.h, python/display_driver.py, and python/fs_driver.py..."
+git -C "${TMP}/lvgl-bindings" checkout "${REF}" -- generated/lvgl_python.c generated/lvgl.pyi lv_conf.h python/display_driver.py python/fs_driver.py
 
 LVPY_SRC="${TMP}/lvgl-bindings/generated/lvgl_python.c"
 LVPYI_SRC="${TMP}/lvgl-bindings/generated/lvgl.pyi"
@@ -79,12 +79,14 @@ cp "$LVPY_SRC" "${SOURCE_REPO}/generated/lvgl_python.c"
 cp "$LVPYI_SRC" "${SOURCE_REPO}/generated/lvgl.pyi"
 cp "$LV_CONF_SRC" "${SOURCE_REPO}/lv_conf.h"
 
-DD_SRC="${TMP}/lvgl-bindings/python/display_driver.py"
-if [[ ! -f "$DD_SRC" ]]; then
-    echo "Error: python/display_driver.py not found on ${REF}." >&2
-    exit 1
-fi
-cp "$DD_SRC" "${SOURCE_REPO}/display_driver.py"
+for helper in display_driver.py fs_driver.py; do
+    HELPER_SRC="${TMP}/lvgl-bindings/python/${helper}"
+    if [[ ! -f "$HELPER_SRC" ]]; then
+        echo "Error: python/${helper} not found on ${REF}." >&2
+        exit 1
+    fi
+    cp "$HELPER_SRC" "${SOURCE_REPO}/${helper}"
+done
 
 cd "${SOURCE_REPO}"
 if [[ ! -f .gitmodules ]]; then
@@ -103,8 +105,9 @@ echo "  generated/lvgl_python.c"
 echo "  generated/lvgl.pyi"
 echo "  lv_conf.h"
 echo "  display_driver.py"
+echo "  fs_driver.py"
 echo "  lvgl @ ${LVGL_SHA}"
 echo
 echo "Commit when ready:"
-echo "  git add generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py lvgl"
+echo "  git add generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py fs_driver.py lvgl"
 echo "  git commit -m \"Sync bindings and LVGL from lvgl-bindings ${REF}.\""

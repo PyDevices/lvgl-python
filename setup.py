@@ -163,7 +163,7 @@ setup(
     name="pydevices-lvgl",
     description="LVGL bindings for CPython (generated)",
     ext_modules=[ext],
-    py_modules=["display_driver"],
+    py_modules=["display_driver", "fs_driver"],
     python_requires=">=3.9",
     cmdclass={"build_ext": Win32LinkRspBuildExt},
 )

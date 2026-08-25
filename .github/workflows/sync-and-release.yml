@@ -64,7 +64,7 @@ jobs:
             git fetch --tags origin
             VERSION="$(./scripts/next_release_version.sh)"
             printf '%s\n' "$VERSION" > VERSION
-            git add VERSION generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py lvgl
+            git add VERSION generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py fs_driver.py lvgl
             git commit -m "Sync bindings and LVGL from lvgl-bindings ${LV_BINDINGS_REF}."
             git push origin HEAD:main
             echo "changed=true" >> "$GITHUB_OUTPUT"
