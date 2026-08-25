@@ -57,7 +57,10 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-          if git diff --quiet && git diff --cached --quiet; then
+          # Stage first: a newly synced file (e.g. fs_driver.py on its first
+          # sync) is untracked, and `git diff` alone would miss it.
+          git add generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py fs_driver.py lvgl
+          if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Already in sync with lvgl-bindings ${LV_BINDINGS_REF}."
           else
