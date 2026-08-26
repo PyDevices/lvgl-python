@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'PyDevices/lvgl-python'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: recursive
@@ -82,7 +82,7 @@ jobs:
       - name: Mint an installation token for this repository
         id: app-token
         if: inputs.skip_publish != true && steps.commit.outputs.changed == 'true'
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.PYDEVICES_APP_ID }}
           private-key: ${{ secrets.PYDEVICES_APP_PRIVATE_KEY }}
