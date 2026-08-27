@@ -1190,12 +1190,13 @@ _WHEEL_EPSILON = 1e-3
 # historical behavior exactly: the primary axis adjusts, nothing navigates.
 _wheel_adjust_axis = "v"
 _wheel_adjust_sign = 1
+_wheel_navigate_sign = 1
 _wheel_navigates = False
 _wheel_adjust_accum = 0.0
 _wheel_navigate_accum = 0.0
 
 
-def set_wheel_mapping(adjust_axis=None, adjust_sign=None, navigate=None):
+def set_wheel_mapping(adjust_axis=None, adjust_sign=None, navigate=None, navigate_sign=None):
     """Configure how the two wheel/swipe axes map onto LVGL.
 
     ``adjust_axis``: "v" (default) or "h" — which axis drives the encoder
@@ -1209,8 +1210,14 @@ def set_wheel_mapping(adjust_axis=None, adjust_sign=None, navigate=None):
     secondary axis is used only as a fallback when the primary is silent,
     which keeps single-axis sources such as hardware encoders working
     regardless of which field they populate.
+    ``navigate_sign``: 1 or -1 to flip which way focus travels. Needed
+    independently of ``adjust_sign`` because the two axes come from
+    different sources with their own conventions -- SDL and Win32 disagree
+    about the sign of vertical scroll, and "swipe down goes to the next
+    control" is a claim about that axis alone.
     """
     global _wheel_adjust_axis, _wheel_adjust_sign, _wheel_navigates
+    global _wheel_navigate_sign
     if adjust_axis is not None:
         if adjust_axis not in ("v", "h"):
             raise ValueError("adjust_axis must be 'v' or 'h'")
@@ -1219,6 +1226,8 @@ def set_wheel_mapping(adjust_axis=None, adjust_sign=None, navigate=None):
         _wheel_adjust_sign = 1 if adjust_sign >= 0 else -1
     if navigate is not None:
         _wheel_navigates = bool(navigate)
+    if navigate_sign is not None:
+        _wheel_navigate_sign = 1 if navigate_sign >= 0 else -1
 
 
 def _wheel_axes(event):
@@ -1243,7 +1252,9 @@ def _wheel_split(event):
     adjust, other = (v, h) if _wheel_adjust_axis == "v" else (h, v)
     if not _wheel_navigates and adjust == 0:
         adjust, other = other, 0.0
-    return adjust * _wheel_adjust_sign, other if _wheel_navigates else 0.0
+    if not _wheel_navigates:
+        return adjust * _wheel_adjust_sign, 0.0
+    return adjust * _wheel_adjust_sign, other * _wheel_navigate_sign
 
 
 def _encoder_cb(event, indev=None, data=None):
