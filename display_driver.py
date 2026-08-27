@@ -383,6 +383,31 @@ class VirtualDevices:
 
         def add_event(self, event):
             if (
+                event.type == events.MOUSEWHEEL
+                and self._fifo
+                and self._fifo[-1].type == events.MOUSEWHEEL
+            ):
+                # Sum, don't replace: unlike a motion sample (only the latest
+                # position matters), every wheel delta has to count toward
+                # the total scroll distance. Some backends (WinDisplay,
+                # confirmed) emit far more wheel messages per physical
+                # gesture than others (SDL) - without this, a fast scroll
+                # queues faster than the "keep calling me until empty"
+                # read-cycle mechanism can drain one at a time, and the
+                # window stops responding for as long as scrolling continues.
+                last = self._fifo[-1]
+                self._fifo[-1] = events.Wheel(
+                    event.type,
+                    event.flipped,
+                    last.x + event.x,
+                    last.y + event.y,
+                    last.precise_x + event.precise_x,
+                    last.precise_y + event.precise_y,
+                    event.touch,
+                    event.window,
+                )
+                return
+            if (
                 event.type == events.MOUSEMOTION
                 and self._fifo
                 and self._fifo[-1].type == events.MOUSEMOTION
@@ -432,6 +457,10 @@ class VirtualDevices:
     def __init__(self, host_device, window_id=None):
         self._host_device = host_device
         self._window_id = window_id
+        # For QUIT below: the app that owns this HOST device (App.add_device
+        # sets dev.app = self on every device it registers), so a window
+        # close reaches the same app.request_quit() a script calls by hand.
+        self._app = getattr(host_device, "app", None)
         self._vd_pointer = self.VirtualDevice(self, POINTER)
         self._vd_encoder = self.VirtualDevice(self, ENCODER)
         self._vd_keypad = self.VirtualDevice(self, KEYPAD)
@@ -507,6 +536,15 @@ class VirtualDevices:
             _wheel_navigate_cb(event)
         elif event.type in (events.KEYDOWN, events.KEYUP):
             self._vd_keypad.add_event(event)
+        elif event.type == events.QUIT:
+            # Window-close reaches here (e.g. windisplay.WinDisplay's
+            # WM_CLOSE handler queues one) but nothing previously acted on
+            # it: every LVGL indev is polled straight from LVGL's own read
+            # timer, not from App.poll()'s loop, so App's own QUIT handling
+            # never saw it — the event was silently dropped and the window
+            # could not be closed at all.
+            if self._app is not None:
+                self._app.request_quit()
 
 
 class event_loop:
