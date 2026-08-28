@@ -5,7 +5,7 @@
  *
  * Target: cpython
  * Command line:
- * gen_binding.py --target cpython -M lvgl -MP lv --naming-style legacy --read-only-ir --ir generated/lvgl.json -E generated/lvgl.pp lvgl/lvgl.h
+ * python -m binding.generate --target cpython
  *
  * Preprocessing command:
  * Preprocessing was disabled.

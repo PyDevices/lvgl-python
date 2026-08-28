@@ -1,5 +1,5 @@
 # LVGL 9.5
-# Naming style: legacy
+# Naming: upstream-compatible
 """Type stubs for LVGL Python bindings (auto-generated)."""
 from __future__ import annotations
 from collections.abc import Callable, Sequence
