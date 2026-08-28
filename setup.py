@@ -13,11 +13,15 @@ ROOT = Path(__file__).resolve().parent
 LVGL_DIR = ROOT / "lvgl"
 GENERATED = ROOT / "generated" / "lvgl_python.c"
 GENERATED_PYI = ROOT / "generated" / "lvgl.pyi"
+BINDINGS_PIN = ROOT / "LVGL_BINDINGS_COMMIT"
 
 if not GENERATED.is_file():
     raise SystemExit(
         f"{GENERATED} not found. Run: {ROOT / 'scripts/sync_from_lvgl_bindings.sh'}"
     )
+
+if not BINDINGS_PIN.is_file() or len(BINDINGS_PIN.read_text().strip()) != 40:
+    raise SystemExit("LVGL_BINDINGS_COMMIT must contain the exact source commit")
 
 if not (LVGL_DIR / "lvgl.h").is_file():
     raise SystemExit(

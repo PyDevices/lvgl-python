@@ -8,6 +8,7 @@ build/
 dist/
 *.so
 *.pyd
+/lvgl*.pyi
 
 # Cursor IDE throwaways (do not ignore the whole .cursor/ tree)
 .cursor/debug*

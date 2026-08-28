@@ -4,21 +4,19 @@
 # on GitHub (not the local workspace).
 #
 # Usage:
-#   ./scripts/sync_from_lvgl_bindings.sh
-#   ./scripts/sync_from_lvgl_bindings.sh --ref abc1234
-#   LV_BINDINGS_REF=main ./scripts/sync_from_lvgl_bindings.sh
+#   ./scripts/sync_from_lvgl_bindings.sh --ref <40-character commit SHA>
+#   ./scripts/sync_from_lvgl_bindings.sh --ref v9.5.N
 #
 # After syncing, commit the updated files and lvgl submodule SHA in this repo.
 
 set -euo pipefail
 
 LV_BINDINGS_REPO="${LV_BINDINGS_REPO:-https://github.com/PyDevices/lvgl-bindings.git}"
-LV_BINDINGS_REF="${LV_BINDINGS_REF:-main}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-REF="$LV_BINDINGS_REF"
+REF="${LV_BINDINGS_REF:-}"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --ref)
@@ -36,6 +34,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [[ -z "$REF" ]]; then
+    REF=$(tr -d '[:space:]' < "$SOURCE_REPO/LVGL_BINDINGS_COMMIT")
+fi
+if [[ ! "$REF" =~ ^[0-9a-fA-F]{40}$ && ! "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Error: --ref must be an exact 40-character commit SHA or vX.Y.Z tag, got: $REF" >&2
+    exit 1
+fi
+
 # Short-lived clone under /tmp so we never read the local sibling lvgl-bindings tree.
 TMP=$(mktemp -d)
 cleanup() { rm -rf "$TMP"; }
@@ -44,9 +50,11 @@ trap cleanup EXIT
 echo "Fetching ${LV_BINDINGS_REPO} @ ${REF}..."
 echo "(using temp clone ${TMP}/lvgl-bindings — removed on exit)"
 git clone --filter=blob:none --no-checkout "${LV_BINDINGS_REPO}" "${TMP}/lvgl-bindings"
+git -C "${TMP}/lvgl-bindings" fetch origin "$REF"
+RESOLVED_REF=$(git -C "${TMP}/lvgl-bindings" rev-parse 'FETCH_HEAD^{commit}')
 
 echo "Checking out generated/lvgl_python.c, generated/lvgl.pyi, lv_conf.h, python/display_driver.py, and python/fs_driver.py..."
-git -C "${TMP}/lvgl-bindings" checkout "${REF}" -- generated/lvgl_python.c generated/lvgl.pyi lv_conf.h python/display_driver.py python/fs_driver.py
+git -C "${TMP}/lvgl-bindings" checkout "$RESOLVED_REF" -- generated/lvgl_python.c generated/lvgl.pyi lv_conf.h python/display_driver.py python/fs_driver.py
 
 LVPY_SRC="${TMP}/lvgl-bindings/generated/lvgl_python.c"
 LVPYI_SRC="${TMP}/lvgl-bindings/generated/lvgl.pyi"
@@ -68,7 +76,7 @@ fi
 
 # Read the pinned lvgl commit from git metadata — no submodule clone (avoids SSH URLs).
 echo "Reading lvgl submodule pin from lvgl-bindings..."
-LVGL_SHA=$(git -C "${TMP}/lvgl-bindings" ls-tree "${REF}" lvgl | awk '{print $3}')
+LVGL_SHA=$(git -C "${TMP}/lvgl-bindings" ls-tree "$RESOLVED_REF" lvgl | awk '{print $3}')
 if [[ -z "$LVGL_SHA" || "$LVGL_SHA" == "lvgl" ]]; then
     echo "Error: could not read lvgl submodule commit from lvgl-bindings ${REF}." >&2
     exit 1
@@ -78,6 +86,7 @@ mkdir -p "${SOURCE_REPO}/generated"
 cp "$LVPY_SRC" "${SOURCE_REPO}/generated/lvgl_python.c"
 cp "$LVPYI_SRC" "${SOURCE_REPO}/generated/lvgl.pyi"
 cp "$LV_CONF_SRC" "${SOURCE_REPO}/lv_conf.h"
+printf '%s\n' "$RESOLVED_REF" > "${SOURCE_REPO}/LVGL_BINDINGS_COMMIT"
 
 for helper in display_driver.py fs_driver.py; do
     HELPER_SRC="${TMP}/lvgl-bindings/python/${helper}"
@@ -100,7 +109,8 @@ git -C lvgl fetch origin "${LVGL_SHA}" 2>/dev/null || git -C lvgl fetch origin
 git -C lvgl checkout "${LVGL_SHA}"
 
 echo
-echo "Synced from lvgl-bindings ${REF}:"
+echo "Synced from lvgl-bindings ${RESOLVED_REF}:"
+echo "  LVGL_BINDINGS_COMMIT"
 echo "  generated/lvgl_python.c"
 echo "  generated/lvgl.pyi"
 echo "  lv_conf.h"
@@ -109,5 +119,5 @@ echo "  fs_driver.py"
 echo "  lvgl @ ${LVGL_SHA}"
 echo
 echo "Commit when ready:"
-echo "  git add generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py fs_driver.py lvgl"
-echo "  git commit -m \"Sync bindings and LVGL from lvgl-bindings ${REF}.\""
+echo "  git add LVGL_BINDINGS_COMMIT generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py fs_driver.py lvgl"
+echo "  git commit -m \"Sync bindings and LVGL from lvgl-bindings ${RESOLVED_REF}.\""

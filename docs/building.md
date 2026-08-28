@@ -16,6 +16,7 @@ binding sync from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings)):
 |------|------|
 | `generated/lvgl_python.c` | Generated CPython binding |
 | `generated/lvgl.pyi` | Type stubs (copied into the install) |
+| `LVGL_BINDINGS_COMMIT` | Exact lvgl-bindings source commit for all vendored artifacts |
 | `lv_conf.h` | LVGL config used for the build |
 | `display_driver.py` | Optional helper (`import display_driver`) |
 | `lvgl/` | LVGL C sources (git submodule) |
@@ -30,21 +31,21 @@ only when you are changing the **generator** or regenerating bindings:
 
 ```text
 workspace/
-  lvgl-bindings/      # optional — generator + regenerate_lvpy.sh
+  lvgl-bindings/      # optional — generator + canonical smoke suite
   lvgl-python/   # this repo
 ```
 
 Do that when you need to:
 
-- Edit `lvgl-bindings/binding/emit_cpython.py` (e.g. `max_phase`) or other emitters
-- Run `./regenerate_lvpy.sh` in lvgl-bindings, then sync the output into this repo
+- Edit the target-neutral model or CPython emitter in `lvgl-bindings/binding/`
+- Run `./regenerate_all.sh --target cpython`, then sync the output into this repo
 - Run the shared cross-interpreter smoke script at `lvgl-bindings/tools/test_lvgl_smoke.py`
 
 To refresh vendored files from GitHub **without** a sibling clone, use:
 
 ```bash
-./scripts/sync_from_lvgl_bindings.sh          # lvgl-bindings main
-./scripts/sync_from_lvgl_bindings.sh --ref SHA  # pin a commit/tag/branch
+./scripts/sync_from_lvgl_bindings.sh --ref <40-character-commit-sha>
+./scripts/sync_from_lvgl_bindings.sh --ref v9.5.N
 ```
 
 That script clones lvgl-bindings into a temp directory, copies the generated
@@ -84,6 +85,7 @@ limits).
 
 ```text
 lvgl-python/
+├── LVGL_BINDINGS_COMMIT       # exact immutable source
 ├── generated/lvgl_python.c    # vendored binding (synced from lvgl-bindings)
 ├── generated/lvgl.pyi
 ├── lv_conf.h
@@ -161,14 +163,13 @@ Open a **new** terminal after installing Build Tools so `cl.exe` is on `PATH`.
 
 ### Changing API coverage (needs lvgl-bindings)
 
-To change how much of the API is emitted, clone lvgl-bindings as a sibling, edit
-`max_phase` in `lvgl-bindings/binding/emit_cpython.py`, regenerate, sync, then
-reinstall:
+Change the canonical API policy or generator in a sibling lvgl-bindings clone,
+regenerate all affected targets, commit that source, sync its exact SHA, then reinstall:
 
 ```bash
-cd ../lvgl-bindings && ./regenerate_lvpy.sh
+cd ../lvgl-bindings && ./regenerate_all.sh --target cpython
 cd ../lvgl-python
-./scripts/sync_from_lvgl_bindings.sh   # or copy generated files by hand
+./scripts/sync_from_lvgl_bindings.sh --ref <40-character-commit-sha>
 .venv/bin/pip install -e .           # or pip.exe on Windows
 ```
 
