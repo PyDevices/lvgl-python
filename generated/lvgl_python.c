@@ -52,7 +52,7 @@ static void lvpy_str_arr_capsule_free(PyObject *capsule)
     PyMem_Free(PyCapsule_GetPointer(capsule, NULL));
 }
 
-__attribute__((unused)) static void *lvpy_str_arr_arg(PyObject *self, PyObject *arg, const char *key)
+static void *lvpy_str_arr_arg(PyObject *self, PyObject *arg, const char *key)
 {
     if (!arg || arg == Py_None) return NULL;
     if (PyUnicode_Check(arg) || PyBytes_Check(arg) || !PySequence_Check(arg))
