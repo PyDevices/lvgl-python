@@ -4,6 +4,8 @@ Native CPython extension for [LVGL](https://lvgl.io/), generated from [`lvgl-bin
 
 This is the publishing endpoint in the LVGL family: it turns synced bindings into versioned `pydevices-lvgl` wheels on TestPyPI. See [lvgl-bindings — The LVGL family](https://github.com/PyDevices/lvgl-bindings#the-lvgl-family) for how the family fits together.
 
+**Synced from lvgl-bindings:** the generated bindings and `display_driver.py`/`fs_driver.py` helpers here are synced from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings) at the commit pinned in `LVGL_BINDINGS_COMMIT`. Do not edit them here — change them in lvgl-bindings and re-sync.
+
 > **Pip name:** `pydevices-lvgl` · **Import:** `import lvgl as lv`
 
 ```python
