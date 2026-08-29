@@ -704,9 +704,24 @@ PyObject *get_callback_dict_from_user_data(void *user_data)
     return mp_get_callbacks(obj);
 }
 
+/* Py_IsFinalizing() is 3.13+; _Py_IsFinalizing() covers 3.10-3.12. Both
+ * report whether the interpreter is inside Py_FinalizeEx(). */
+#if PY_VERSION_HEX >= 0x030d0000
+#define LVPY_IS_FINALIZING() Py_IsFinalizing()
+#else
+#define LVPY_IS_FINALIZING() _Py_IsFinalizing()
+#endif
+
 int lvpy_is_per_registration_callback_dict(void *user_data)
 {
     if (!user_data) return 0;
+    /* During Py_FinalizeEx(), lv_deinit()'s object-tree teardown fires
+     * LV_EVENT_DELETE per object, which reaches here through
+     * lvpy_release_callback_user_data(). At that point PyObject internals
+     * (the type object graph PyDict_Check/PyObject_TypeCheck walk) may
+     * already be torn down, so probing them is unsafe. Treat user_data as
+     * opaque once finalization has started. */
+    if (LVPY_IS_FINALIZING()) return 0;
     PyObject *obj = (PyObject *)user_data;
     if (!PyDict_Check(obj)) return 0;
     PyTypeObject *base = py_get_base_obj_type();
@@ -716,6 +731,11 @@ int lvpy_is_per_registration_callback_dict(void *user_data)
 
 void lvpy_release_callback_user_data(void *user_data)
 {
+    /* Same finalization hazard as above: Py_DECREF touches the object's
+     * type/refcount machinery, which is unsafe once Py_FinalizeEx() has
+     * started tearing down the interpreter. Skip the release and leak —
+     * the process is exiting, so this memory is reclaimed by the OS. */
+    if (LVPY_IS_FINALIZING()) return;
     if (lvpy_is_per_registration_callback_dict(user_data)) {
         Py_DECREF((PyObject *)user_data);
     }
