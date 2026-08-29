@@ -11,12 +11,15 @@ on:
         required: true
         type: string
 
+# publishing-v5 ceiling: contents:write (release assets), id-token:write
+# (PyPI Trusted Publishing).
 permissions:
-  contents: read
+  contents: write
+  id-token: write
 
 jobs:
   publish:
-    uses: PyDevices/.github/.github/workflows/reusable-publish-release-packages.yml@publishing-v3
+    uses: PyDevices/.github/.github/workflows/reusable-publish-release-packages.yml@publishing-v5
     with:
       build-kind: native-and-wasm
       distribution-name: pydevices-lvgl
