@@ -32,6 +32,9 @@ class _Blob:
     @overload
     def __cast__(self, target_type: type[_BlobT], /) -> _BlobT: ...
 
+class _Nesting:
+    value: int
+
 class ALIGN:
     DEFAULT: int
     TOP_LEFT: int
@@ -4085,6 +4088,7 @@ tileview_class: obj_class_t
 tileview_tile_class: obj_class_t
 tree_node_class: tree_class_t
 win_class: obj_class_t
+_nesting: _Nesting
 
 def anim_core_deinit() -> None: ...
 def anim_core_init() -> None: ...
