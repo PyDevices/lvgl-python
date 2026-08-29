@@ -712,31 +712,59 @@ PyObject *get_callback_dict_from_user_data(void *user_data)
 #define LVPY_IS_FINALIZING() _Py_IsFinalizing()
 #endif
 
+/* Registry of the per-registration callback dicts THIS runtime created.
+ *
+ * py_lv_delete_cb sweeps every event descriptor on a dying object --
+ * including registrations made by LVGL internals or other C code, whose
+ * user_data is an arbitrary C pointer. Probing such a pointer with
+ * PyDict_Check() dereferences ob_type on non-PyObject memory and can
+ * segfault (observed under lv_deinit(): a foreign dsc's user_data pointed
+ * into an LVGL heap block). Never type-guess: a pointer is releasable iff
+ * we recorded it at creation. All access happens with the GIL held
+ * (mp_lv_callback runs from Python; py_lv_delete_cb takes the GIL). */
+static void **lvpy_dict_registry = NULL;
+static size_t lvpy_dict_registry_len = 0;
+static size_t lvpy_dict_registry_cap = 0;
+
+void lvpy_register_callback_dict(void *user_data)
+{
+    if (!user_data) return;
+    if (lvpy_dict_registry_len == lvpy_dict_registry_cap) {
+        size_t cap = lvpy_dict_registry_cap ? lvpy_dict_registry_cap * 2 : 32;
+        void **grown = (void **)realloc(lvpy_dict_registry, cap * sizeof(void *));
+        if (!grown) return; /* untracked dict leaks at release time; safe */
+        lvpy_dict_registry = grown;
+        lvpy_dict_registry_cap = cap;
+    }
+    lvpy_dict_registry[lvpy_dict_registry_len++] = user_data;
+}
+
+static int lvpy_registry_remove(void *user_data)
+{
+    for (size_t i = 0; i < lvpy_dict_registry_len; i++) {
+        if (lvpy_dict_registry[i] == user_data) {
+            lvpy_dict_registry[i] = lvpy_dict_registry[--lvpy_dict_registry_len];
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int lvpy_is_per_registration_callback_dict(void *user_data)
 {
     if (!user_data) return 0;
-    /* During Py_FinalizeEx(), lv_deinit()'s object-tree teardown fires
-     * LV_EVENT_DELETE per object, which reaches here through
-     * lvpy_release_callback_user_data(). At that point PyObject internals
-     * (the type object graph PyDict_Check/PyObject_TypeCheck walk) may
-     * already be torn down, so probing them is unsafe. Treat user_data as
-     * opaque once finalization has started. */
-    if (LVPY_IS_FINALIZING()) return 0;
-    PyObject *obj = (PyObject *)user_data;
-    if (!PyDict_Check(obj)) return 0;
-    PyTypeObject *base = py_get_base_obj_type();
-    if (base && PyObject_TypeCheck(obj, base)) return 0;
-    return 1;
+    for (size_t i = 0; i < lvpy_dict_registry_len; i++) {
+        if (lvpy_dict_registry[i] == user_data) return 1;
+    }
+    return 0;
 }
 
 void lvpy_release_callback_user_data(void *user_data)
 {
-    /* Same finalization hazard as above: Py_DECREF touches the object's
-     * type/refcount machinery, which is unsafe once Py_FinalizeEx() has
-     * started tearing down the interpreter. Skip the release and leak —
-     * the process is exiting, so this memory is reclaimed by the OS. */
+    /* Belt on top of the registry: once Py_FinalizeEx() is tearing the
+     * interpreter down, skip the DECREF and leak; the OS reclaims it. */
     if (LVPY_IS_FINALIZING()) return;
-    if (lvpy_is_per_registration_callback_dict(user_data)) {
+    if (user_data && lvpy_registry_remove(user_data)) {
         Py_DECREF((PyObject *)user_data);
     }
 }
@@ -843,6 +871,7 @@ void *mp_lv_callback(PyObject *py_callback, void *lv_callback, const char *callb
                 *user_data_ptr = PyDict_New();
                 if (!*user_data_ptr) return NULL;
                 Py_INCREF((PyObject *)*user_data_ptr);
+                lvpy_register_callback_dict(*user_data_ptr);
             } else if (PyDict_Check((PyObject *)*user_data_ptr)) {
                 Py_INCREF((PyObject *)*user_data_ptr);
             }
@@ -851,6 +880,7 @@ void *mp_lv_callback(PyObject *py_callback, void *lv_callback, const char *callb
             user_data = get_user_data(containing_struct);
             if (!user_data) {
                 user_data = PyDict_New();
+                lvpy_register_callback_dict(user_data);
                 set_user_data(containing_struct, user_data);
             }
         }
