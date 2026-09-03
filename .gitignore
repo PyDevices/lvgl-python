@@ -20,6 +20,6 @@ dist/
 .pyodide_build/
 *.profraw
 *.egg
-# flock file used by cmods' build_target.sh to serialize cpy-unix vs
+# flock file a workspace build script may take to serialize cpy-unix vs
 # cpy-windows builds against this editable-install tree.
 .build.lock
