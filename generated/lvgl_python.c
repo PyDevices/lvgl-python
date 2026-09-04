@@ -58680,6 +58680,64 @@ static PyMethodDef py_lv_lodepng_deinit_def = {
 
 /*
  * lvgl extension definition for:
+ * void lv_tjpgd_init(void)
+ */
+static PyObject *py_lv_tjpgd_init(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)self;
+    (void)py_kwds;
+
+    
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(void))lv_tjpgd_init)();
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_tjpgd_init_def = {
+    "lv_tjpgd_init",
+    (PyCFunction)py_lv_tjpgd_init,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_tjpgd_deinit(void)
+ */
+static PyObject *py_lv_tjpgd_deinit(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)self;
+    (void)py_kwds;
+
+    
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(void))lv_tjpgd_deinit)();
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_tjpgd_deinit_def = {
+    "lv_tjpgd_deinit",
+    (PyCFunction)py_lv_tjpgd_deinit,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
  * void lv_draw_sw_i1_to_argb8888(const void *buf_i1, void *buf_argb8888, uint32_t width, uint32_t height, uint32_t buf_i1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color)
  */
 static PyObject *py_lv_draw_sw_i1_to_argb8888(PyObject *self, PyObject *py_args, PyObject *py_kwds)
@@ -86572,8 +86630,6 @@ PyMethodDef py_lv_color_hsv_t_methods[] = {{NULL}};
  * lv_span_get_style
  * lv_span_get_text
  * lv_table_set_cell_value_fmt
- * lv_tjpgd_init
- * lv_tjpgd_deinit
  * lv_theme_copy
  * lv_theme_set_parent
  * lv_theme_set_apply_cb
@@ -89063,6 +89119,8 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     { PyObject *fn = PyCFunction_New(&py_lv_fs_memfs_init_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "fs_memfs_init", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_lodepng_init_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "lodepng_init", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_lodepng_deinit_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "lodepng_deinit", fn) < 0) return NULL; }
+    { PyObject *fn = PyCFunction_New(&py_lv_tjpgd_init_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "tjpgd_init", fn) < 0) return NULL; }
+    { PyObject *fn = PyCFunction_New(&py_lv_tjpgd_deinit_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "tjpgd_deinit", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_draw_sw_i1_to_argb8888_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "draw_sw_i1_to_argb8888", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_draw_sw_rgb565_swap_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "draw_sw_rgb565_swap", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_draw_sw_i1_invert_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "draw_sw_i1_invert", fn) < 0) return NULL; }

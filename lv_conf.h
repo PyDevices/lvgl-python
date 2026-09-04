@@ -729,11 +729,18 @@ extern void mp_lv_deinit_gc(void);
 
 /* JPG + split JPG decoder library.
  * Split JPG is a custom format optimized for embedded systems. */
-#if defined(LV_CIRCUITPYTHON_BUILD) || defined(LV_CPYTHON_BUILD)
-/* CP links lib/tjpgd separately; CPython build excludes bundled tjpgd.c (see setup.py). */
-#define LV_USE_TJPGD 0
-#else
+#if defined(LV_CPYTHON_BUILD) || defined(PYCPARSER)
+/* CPython has no jpegio, so LVGL's built-in decoder stays.
+ * PYCPARSER is the binding generator's preprocess pass (binding/preprocess.py;
+ * LVGL's lv_types.h honours the same define): it must see every declaration
+ * once, target-neutrally -- per-target absence is data in
+ * binding/api_policy.json, not a smaller translation unit. */
 #define LV_USE_TJPGD 1
+#else
+/* The JPEG decoder on MicroPython and CircuitPython is jpegio's, registered
+ * through lv_image_decoder_create by displayif / lvgl-circuitpython; one
+ * TJpgDec per firmware -- see displayif#23, lvgl-bindings#14. */
+#define LV_USE_TJPGD 0
 #endif
 
 /* libjpeg-turbo decoder library.

@@ -28,10 +28,11 @@ if not (LVGL_DIR / "lvgl.h").is_file():
         "lvgl submodule missing. Run: git submodule update --init lvgl"
     )
 
+# LVGL's built-in TJPGD stays on for CPython (lv_conf.h: LV_USE_TJPGD 1 under
+# LV_CPYTHON_BUILD) -- CPython has no jpegio, so tjpgd.c compiles like the rest.
 lvgl_sources = [
     os.path.relpath(p, ROOT)
     for p in (LVGL_DIR / "src").rglob("*.c")
-    if p.name != "tjpgd.c"
 ]
 
 runtime_sources = [
