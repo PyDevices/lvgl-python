@@ -7,7 +7,7 @@ name = "pydevices-lvgl"
 dynamic = ["version"]
 description = "LVGL bindings for CPython (generated); import as lvgl"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 urls = { Homepage = "https://github.com/PyDevices/lvgl-python", Documentation = "https://github.com/PyDevices/lvgl-python#readme", Issues = "https://github.com/PyDevices/lvgl-python/issues" }
 
 [tool.setuptools.dynamic]
