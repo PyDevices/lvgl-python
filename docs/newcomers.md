@@ -156,3 +156,15 @@ submodule, use the documented sync path rather than staging a hand-picked
 mixture of outputs.
 
 ## Where to learn next
+
+Read `src/lvpy_runtime.h` first, then follow one call from `import lvgl` into
+`generated/lvgl_python.c` and back through `src/lvpy_runtime.c`.
+`tests/test_lvgl_init.py` is short and shows the lifecycle contract the runtime
+has to keep.
+
+For the user-facing surface, both setup paths are in the
+[README](../README.md#usage). For how the binding is generated and which API
+decisions it makes, go to
+[lvgl-bindings](https://github.com/PyDevices/lvgl-bindings). Building from
+source is in [building.md](building.md), and releases are in
+[publishing.md](publishing.md).
