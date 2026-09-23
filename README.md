@@ -15,7 +15,7 @@ import lvgl as lv
 
 ## Install
 
-Prebuilt wheels are published as **`pydevices-lvgl`** on [TestPyPI](https://test.pypi.org/project/pydevices-lvgl/) (import as `lvgl`). CI builds a separate wheel for each CPython minor (3.10–3.14) on Linux x86_64 and Windows x64, **Android** wheels for **3.13–3.14** (`android_21_arm64_v8a`, `android_21_x86_64` per [PEP 738](https://peps.python.org/pep-0738/); cibuildwheel has no `armeabi_v7a` yet), plus a **Pyodide** `pyemscripten_2026_0_wasm32` wheel (`cp314`) — pip/micropip select the tag that matches your interpreter.
+Prebuilt wheels are published as **`pydevices-lvgl`** on [TestPyPI](https://test.pypi.org/project/pydevices-lvgl/) (import as `lvgl`). CI builds a separate wheel for each CPython minor (3.11–3.14) on Linux x86_64 and Windows x64, **Android** wheels for **3.13–3.14** (`android_21_arm64_v8a`, `android_21_x86_64` per [PEP 738](https://peps.python.org/pep-0738/); cibuildwheel has no `armeabi_v7a` yet), plus a **Pyodide** `pyemscripten_2026_0_wasm32` wheel (`cp314`) — pip/micropip select the tag that matches your interpreter.
 
 **Android (python-for-android / PyDevices):** install the matching wheel from TestPyPI when building an APK, or let the `pydeviceslvgl` p4a recipe fetch it (see [android-template](https://github.com/PyDevices/android-template)):
 

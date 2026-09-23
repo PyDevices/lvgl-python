@@ -17,10 +17,10 @@ version = {file = "VERSION"}
 packages = []
 py-modules = ["display_driver", "fs_driver"]
 
-# Wheel CI: one wheel per CPython minor (cp310…cp314) × Linux + Windows + Android — see README.
+# Wheel CI: one wheel per CPython minor (cp311…cp314) × Linux + Windows + Android — see README.
 # Local reproduction: docs/publishing.md § "Local wheel builds (cibuildwheel)" (Linux needs Docker).
 [tool.cibuildwheel]
-build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+build = "cp311-* cp312-* cp313-* cp314-*"
 skip = "*musllinux* *-macosx_* *-win32"
 test-command = "python -c \"import lvgl as lv; lv.init(); lv.deinit()\""
 # cp314: import test passes then segfaults on interpreter shutdown after lv.deinit()
