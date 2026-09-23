@@ -142,6 +142,7 @@ Struct-backed APIs, including displays, use methods consistently on all three ru
 ## Links
 
 - [Source](https://github.com/PyDevices/lvgl-python)
+- [Newcomer's guide](docs/newcomers.md) — repository architecture and contribution boundaries
 - [Issues](https://github.com/PyDevices/lvgl-python/issues)
 - [building.md](docs/building.md) — build from source
 - Related: [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings), [pydevices-examples](https://github.com/PyDevices/pydevices-examples)
