@@ -1,5 +1,7 @@
 # lvgl-python documentation
 
+- [newcomers.md](newcomers.md) — architecture, code ownership, and safe first changes.
+
 - [building.md](building.md) — local build/dev workflow, syncing generated
   bindings from lvgl-bindings.
 - [publishing.md](publishing.md) — how a bindings change becomes a versioned
