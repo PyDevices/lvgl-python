@@ -79,8 +79,8 @@ dispatches `mode=release` when its `publish` input is deliberately enabled.
 The published-release workflow uses the PyDevices reusable native/WASM package
 builder. The repository's `pyproject.toml` keeps the platform policy:
 
-- CPython 3.10–3.14 Linux x86_64 manylinux wheels.
-- CPython 3.10–3.14 Windows AMD64 wheels.
+- CPython 3.11–3.14 Linux x86_64 manylinux wheels.
+- CPython 3.11–3.14 Windows AMD64 wheels.
 - CPython 3.13–3.14 Android arm64-v8a and x86_64 wheels.
 - Pyodide/WebAssembly wheels supplied by the reusable release workflow.
 

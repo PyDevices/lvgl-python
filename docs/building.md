@@ -55,7 +55,7 @@ files, and updates the `lvgl` submodule pin. Release flow: **[publishing.md](pub
 
 ### All platforms
 
-- Python 3.9+ with `pip` and `setuptools`
+- Python 3.11+ with `pip` and `setuptools`
 - Vendored files above (already in the clone)
 - `git submodule update --init lvgl`
 
@@ -72,7 +72,7 @@ sudo apt install python3-dev build-essential
 
 ### Windows (native or via WSL + `pip.exe`)
 
-- [python.org](https://www.python.org/) CPython (or another MSVC-built Python 3.9+)
+- [python.org](https://www.python.org/) CPython (or another MSVC-built Python 3.11+)
 - **Microsoft C++ Build Tools** with the **Desktop development with C++** workload  
   ([Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/))
 - MinGW is **not** supported for python.org Windows Python; use MSVC.
