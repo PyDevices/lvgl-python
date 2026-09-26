@@ -6965,9 +6965,15 @@ static int py_lv_color_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_color_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "blue") == 0) { data->blue = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "green") == 0) { data->green = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "red") == 0) { data->red = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_color_t' object has no attribute '%s'", attr);
     }
@@ -7007,7 +7013,28 @@ static inline void* mp_write_ptr_lv_color_t(PyObject *self_in)
     return (lv_color_t*)self->data;
 }
 
-#define mp_write_lv_color_t(struct_obj) (*((lv_color_t*)mp_write_ptr_lv_color_t(struct_obj)))
+static lv_color_t mp_write_scratch_lv_color_t;
+
+static inline void* mp_write_value_ptr_lv_color_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color_t, 0, sizeof(lv_color_t));
+    return &mp_write_scratch_lv_color_t;
+}
+
+#define mp_write_lv_color_t(struct_obj) (*((lv_color_t*)mp_write_value_ptr_lv_color_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_color_t(void *field)
 {
@@ -7369,9 +7396,15 @@ static int py_lv_grad_stop_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_grad_stop_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "frac") == 0) { data->frac = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_grad_stop_t' object has no attribute '%s'", attr);
     }
@@ -7411,7 +7444,28 @@ static inline void* mp_write_ptr_lv_grad_stop_t(PyObject *self_in)
     return (lv_grad_stop_t*)self->data;
 }
 
-#define mp_write_lv_grad_stop_t(struct_obj) (*((lv_grad_stop_t*)mp_write_ptr_lv_grad_stop_t(struct_obj)))
+static lv_grad_stop_t mp_write_scratch_lv_grad_stop_t;
+
+static inline void* mp_write_value_ptr_lv_grad_stop_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_stop_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_stop_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_stop_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_stop_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_stop_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_stop_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_stop_t, 0, sizeof(lv_grad_stop_t));
+    return &mp_write_scratch_lv_grad_stop_t;
+}
+
+#define mp_write_lv_grad_stop_t(struct_obj) (*((lv_grad_stop_t*)mp_write_value_ptr_lv_grad_stop_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_grad_stop_t(void *field)
 {
@@ -7465,11 +7519,17 @@ static int py_lv_grad_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *v
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_grad_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "stops") == 0) { memcpy((void*)&data->stops, mp_to_ptr(value), sizeof(lv_grad_stop_t)*2); result = 0; }
     if (strcmp(attr, "stops_count") == 0) { data->stops_count = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "dir") == 0) { data->dir = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "extend") == 0) { data->extend = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "state") == 0) { data->state = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_t' object has no attribute '%s'", attr);
     }
@@ -7509,7 +7569,28 @@ static inline void* mp_write_ptr_lv_grad_dsc_t(PyObject *self_in)
     return (lv_grad_dsc_t*)self->data;
 }
 
-#define mp_write_lv_grad_dsc_t(struct_obj) (*((lv_grad_dsc_t*)mp_write_ptr_lv_grad_dsc_t(struct_obj)))
+static lv_grad_dsc_t mp_write_scratch_lv_grad_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_grad_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_dsc_t, 0, sizeof(lv_grad_dsc_t));
+    return &mp_write_scratch_lv_grad_dsc_t;
+}
+
+#define mp_write_lv_grad_dsc_t(struct_obj) (*((lv_grad_dsc_t*)mp_write_value_ptr_lv_grad_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_grad_dsc_t(void *field)
 {
@@ -8459,8 +8540,14 @@ static int py_lv_image_colorkey_t_setattro(PyObject *self, PyObject *name, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_colorkey_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "low") == 0) { data->low = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "high") == 0) { data->high = mp_write_lv_color_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_colorkey_t' object has no attribute '%s'", attr);
     }
@@ -8500,7 +8587,28 @@ static inline void* mp_write_ptr_lv_image_colorkey_t(PyObject *self_in)
     return (lv_image_colorkey_t*)self->data;
 }
 
-#define mp_write_lv_image_colorkey_t(struct_obj) (*((lv_image_colorkey_t*)mp_write_ptr_lv_image_colorkey_t(struct_obj)))
+static lv_image_colorkey_t mp_write_scratch_lv_image_colorkey_t;
+
+static inline void* mp_write_value_ptr_lv_image_colorkey_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_colorkey_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_colorkey_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_colorkey_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_colorkey_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_colorkey_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_colorkey_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_colorkey_t, 0, sizeof(lv_image_colorkey_t));
+    return &mp_write_scratch_lv_image_colorkey_t;
+}
+
+#define mp_write_lv_image_colorkey_t(struct_obj) (*((lv_image_colorkey_t*)mp_write_value_ptr_lv_image_colorkey_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_colorkey_t(void *field)
 {
@@ -9110,6 +9218,8 @@ static int py_lv_font_t_setattro(PyObject *self, PyObject *name, PyObject *value
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_font_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "get_glyph_dsc") == 0) { data->get_glyph_dsc = (void*)mp_lv_callback(value, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "get_glyph_bitmap") == 0) { data->get_glyph_bitmap = (void*)mp_lv_callback(value, NULL, "lv_font_t_get_glyph_bitmap", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "release_glyph") == 0) { data->release_glyph = (void*)mp_lv_callback(value, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -9123,6 +9233,10 @@ static int py_lv_font_t_setattro(PyObject *self, PyObject *name, PyObject *value
     if (strcmp(attr, "dsc") == 0) { data->dsc = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "fallback") == 0) { data->fallback = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_font_t' object has no attribute '%s'", attr);
     }
@@ -9162,7 +9276,28 @@ static inline void* mp_write_ptr_lv_font_t(PyObject *self_in)
     return (lv_font_t*)self->data;
 }
 
-#define mp_write_lv_font_t(struct_obj) (*((lv_font_t*)mp_write_ptr_lv_font_t(struct_obj)))
+static lv_font_t mp_write_scratch_lv_font_t;
+
+static inline void* mp_write_value_ptr_lv_font_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_font_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_font_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_font_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_font_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_font_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_font_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_font_t, 0, sizeof(lv_font_t));
+    return &mp_write_scratch_lv_font_t;
+}
+
+#define mp_write_lv_font_t(struct_obj) (*((lv_font_t*)mp_write_value_ptr_lv_font_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_font_t(void *field)
 {
@@ -9962,8 +10097,14 @@ static int py_lv_color_filter_dsc_t_setattro(PyObject *self, PyObject *name, PyO
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_color_filter_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "filter_cb") == 0) { data->filter_cb = mp_lv_callback(value, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_color_filter_dsc_t' object has no attribute '%s'", attr);
     }
@@ -10003,7 +10144,28 @@ static inline void* mp_write_ptr_lv_color_filter_dsc_t(PyObject *self_in)
     return (lv_color_filter_dsc_t*)self->data;
 }
 
-#define mp_write_lv_color_filter_dsc_t(struct_obj) (*((lv_color_filter_dsc_t*)mp_write_ptr_lv_color_filter_dsc_t(struct_obj)))
+static lv_color_filter_dsc_t mp_write_scratch_lv_color_filter_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_color_filter_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_filter_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color_filter_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_filter_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color_filter_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color_filter_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_filter_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color_filter_dsc_t, 0, sizeof(lv_color_filter_dsc_t));
+    return &mp_write_scratch_lv_color_filter_dsc_t;
+}
+
+#define mp_write_lv_color_filter_dsc_t(struct_obj) (*((lv_color_filter_dsc_t*)mp_write_value_ptr_lv_color_filter_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_color_filter_dsc_t(void *field)
 {
@@ -10231,6 +10393,8 @@ static int py_lv_anim_t_setattro(PyObject *self, PyObject *name, PyObject *value
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_anim_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "var") == 0) { data->var = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "exec_cb") == 0) { data->exec_cb = mp_lv_callback(value, NULL, "lv_anim_t_exec_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "custom_exec_cb") == 0) { data->custom_exec_cb = mp_lv_callback(value, lv_anim_t_custom_exec_cb_callback, "lv_anim_t_custom_exec_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -10257,6 +10421,10 @@ static int py_lv_anim_t_setattro(PyObject *self, PyObject *name, PyObject *value
     if (strcmp(attr, "run_round") == 0) { data->run_round = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "start_cb_called") == 0) { data->start_cb_called = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "early_apply") == 0) { data->early_apply = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_anim_t' object has no attribute '%s'", attr);
     }
@@ -10296,7 +10464,28 @@ static inline void* mp_write_ptr_lv_anim_t(PyObject *self_in)
     return (lv_anim_t*)self->data;
 }
 
-#define mp_write_lv_anim_t(struct_obj) (*((lv_anim_t*)mp_write_ptr_lv_anim_t(struct_obj)))
+static lv_anim_t mp_write_scratch_lv_anim_t;
+
+static inline void* mp_write_value_ptr_lv_anim_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_anim_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_anim_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_anim_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_anim_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_anim_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_anim_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_anim_t, 0, sizeof(lv_anim_t));
+    return &mp_write_scratch_lv_anim_t;
+}
+
+#define mp_write_lv_anim_t(struct_obj) (*((lv_anim_t*)mp_write_value_ptr_lv_anim_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_anim_t(void *field)
 {
@@ -10419,11 +10608,17 @@ static int py_lv_style_transition_dsc_t_setattro(PyObject *self, PyObject *name,
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_style_transition_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "props") == 0) { data->props = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "path_xcb") == 0) { data->path_xcb = mp_lv_callback(value, NULL, "lv_style_transition_dsc_t_path_xcb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "time") == 0) { data->time = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "delay") == 0) { data->delay = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_style_transition_dsc_t' object has no attribute '%s'", attr);
     }
@@ -10463,7 +10658,28 @@ static inline void* mp_write_ptr_lv_style_transition_dsc_t(PyObject *self_in)
     return (lv_style_transition_dsc_t*)self->data;
 }
 
-#define mp_write_lv_style_transition_dsc_t(struct_obj) (*((lv_style_transition_dsc_t*)mp_write_ptr_lv_style_transition_dsc_t(struct_obj)))
+static lv_style_transition_dsc_t mp_write_scratch_lv_style_transition_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_style_transition_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_style_transition_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_style_transition_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_style_transition_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_style_transition_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_style_transition_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_style_transition_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_style_transition_dsc_t, 0, sizeof(lv_style_transition_dsc_t));
+    return &mp_write_scratch_lv_style_transition_dsc_t;
+}
+
+#define mp_write_lv_style_transition_dsc_t(struct_obj) (*((lv_style_transition_dsc_t*)mp_write_value_ptr_lv_style_transition_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_style_transition_dsc_t(void *field)
 {
@@ -12144,6 +12360,8 @@ static int py_lv_image_header_t_setattro(PyObject *self, PyObject *name, PyObjec
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_header_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "magic") == 0) { data->magic = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "cf") == 0) { data->cf = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "flags") == 0) { data->flags = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -12151,6 +12369,10 @@ static int py_lv_image_header_t_setattro(PyObject *self, PyObject *name, PyObjec
     if (strcmp(attr, "h") == 0) { data->h = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "stride") == 0) { data->stride = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "reserved_2") == 0) { data->reserved_2 = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_header_t' object has no attribute '%s'", attr);
     }
@@ -12190,7 +12412,28 @@ static inline void* mp_write_ptr_lv_image_header_t(PyObject *self_in)
     return (lv_image_header_t*)self->data;
 }
 
-#define mp_write_lv_image_header_t(struct_obj) (*((lv_image_header_t*)mp_write_ptr_lv_image_header_t(struct_obj)))
+static lv_image_header_t mp_write_scratch_lv_image_header_t;
+
+static inline void* mp_write_value_ptr_lv_image_header_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_header_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_header_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_header_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_header_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_header_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_header_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_header_t, 0, sizeof(lv_image_header_t));
+    return &mp_write_scratch_lv_image_header_t;
+}
+
+#define mp_write_lv_image_header_t(struct_obj) (*((lv_image_header_t*)mp_write_value_ptr_lv_image_header_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_header_t(void *field)
 {
@@ -12319,6 +12562,8 @@ static int py_lv_draw_buf_handlers_t_setattro(PyObject *self, PyObject *name, Py
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_buf_handlers_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "buf_malloc_cb") == 0) { data->buf_malloc_cb = mp_lv_callback(value, NULL, "lv_draw_buf_handlers_t_buf_malloc_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "buf_free_cb") == 0) { data->buf_free_cb = mp_lv_callback(value, NULL, "lv_draw_buf_handlers_t_buf_free_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "buf_copy_cb") == 0) { data->buf_copy_cb = mp_lv_callback(value, NULL, "lv_draw_buf_handlers_t_buf_copy_cb", NULL, NULL, NULL, NULL); result = 0; }
@@ -12326,6 +12571,10 @@ static int py_lv_draw_buf_handlers_t_setattro(PyObject *self, PyObject *name, Py
     if (strcmp(attr, "invalidate_cache_cb") == 0) { data->invalidate_cache_cb = mp_lv_callback(value, NULL, "lv_draw_buf_handlers_t_invalidate_cache_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "flush_cache_cb") == 0) { data->flush_cache_cb = mp_lv_callback(value, NULL, "lv_draw_buf_handlers_t_flush_cache_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "width_to_stride_cb") == 0) { data->width_to_stride_cb = mp_lv_callback(value, NULL, "lv_draw_buf_handlers_t_width_to_stride_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_buf_handlers_t' object has no attribute '%s'", attr);
     }
@@ -12365,7 +12614,28 @@ static inline void* mp_write_ptr_lv_draw_buf_handlers_t(PyObject *self_in)
     return (lv_draw_buf_handlers_t*)self->data;
 }
 
-#define mp_write_lv_draw_buf_handlers_t(struct_obj) (*((lv_draw_buf_handlers_t*)mp_write_ptr_lv_draw_buf_handlers_t(struct_obj)))
+static lv_draw_buf_handlers_t mp_write_scratch_lv_draw_buf_handlers_t;
+
+static inline void* mp_write_value_ptr_lv_draw_buf_handlers_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_buf_handlers_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_buf_handlers_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_buf_handlers_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_buf_handlers_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_buf_handlers_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_buf_handlers_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_buf_handlers_t, 0, sizeof(lv_draw_buf_handlers_t));
+    return &mp_write_scratch_lv_draw_buf_handlers_t;
+}
+
+#define mp_write_lv_draw_buf_handlers_t(struct_obj) (*((lv_draw_buf_handlers_t*)mp_write_value_ptr_lv_draw_buf_handlers_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_buf_handlers_t(void *field)
 {
@@ -12419,11 +12689,17 @@ static int py_lv_draw_buf_t_setattro(PyObject *self, PyObject *name, PyObject *v
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_buf_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "header") == 0) { data->header = mp_write_lv_image_header_t(value); result = 0; }
     if (strcmp(attr, "data_size") == 0) { data->data_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "data") == 0) { data->data = (void*)mp_array_to_u8ptr(value); result = 0; }
     if (strcmp(attr, "unaligned_data") == 0) { data->unaligned_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "handlers") == 0) { data->handlers = (void*)mp_write_ptr_lv_draw_buf_handlers_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_buf_t' object has no attribute '%s'", attr);
     }
@@ -12463,7 +12739,28 @@ static inline void* mp_write_ptr_lv_draw_buf_t(PyObject *self_in)
     return (lv_draw_buf_t*)self->data;
 }
 
-#define mp_write_lv_draw_buf_t(struct_obj) (*((lv_draw_buf_t*)mp_write_ptr_lv_draw_buf_t(struct_obj)))
+static lv_draw_buf_t mp_write_scratch_lv_draw_buf_t;
+
+static inline void* mp_write_value_ptr_lv_draw_buf_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_buf_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_buf_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_buf_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_buf_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_buf_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_buf_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_buf_t, 0, sizeof(lv_draw_buf_t));
+    return &mp_write_scratch_lv_draw_buf_t;
+}
+
+#define mp_write_lv_draw_buf_t(struct_obj) (*((lv_draw_buf_t*)mp_write_value_ptr_lv_draw_buf_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_buf_t(void *field)
 {
@@ -12526,10 +12823,16 @@ static int py_lv_area_t_setattro(PyObject *self, PyObject *name, PyObject *value
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_area_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "x1") == 0) { data->x1 = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "y1") == 0) { data->y1 = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "x2") == 0) { data->x2 = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "y2") == 0) { data->y2 = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_area_t' object has no attribute '%s'", attr);
     }
@@ -12569,7 +12872,28 @@ static inline void* mp_write_ptr_lv_area_t(PyObject *self_in)
     return (lv_area_t*)self->data;
 }
 
-#define mp_write_lv_area_t(struct_obj) (*((lv_area_t*)mp_write_ptr_lv_area_t(struct_obj)))
+static lv_area_t mp_write_scratch_lv_area_t;
+
+static inline void* mp_write_value_ptr_lv_area_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_area_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_area_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_area_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_area_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_area_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_area_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_area_t, 0, sizeof(lv_area_t));
+    return &mp_write_scratch_lv_area_t;
+}
+
+#define mp_write_lv_area_t(struct_obj) (*((lv_area_t*)mp_write_value_ptr_lv_area_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_area_t(void *field)
 {
@@ -12621,9 +12945,15 @@ static int py_lv_ll_t_setattro(PyObject *self, PyObject *name, PyObject *value)
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_ll_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "n_size") == 0) { data->n_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "head") == 0) { data->head = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "tail") == 0) { data->tail = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_ll_t' object has no attribute '%s'", attr);
     }
@@ -12663,7 +12993,28 @@ static inline void* mp_write_ptr_lv_ll_t(PyObject *self_in)
     return (lv_ll_t*)self->data;
 }
 
-#define mp_write_lv_ll_t(struct_obj) (*((lv_ll_t*)mp_write_ptr_lv_ll_t(struct_obj)))
+static lv_ll_t mp_write_scratch_lv_ll_t;
+
+static inline void* mp_write_value_ptr_lv_ll_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_ll_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_ll_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_ll_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_ll_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_ll_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_ll_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_ll_t, 0, sizeof(lv_ll_t));
+    return &mp_write_scratch_lv_ll_t;
+}
+
+#define mp_write_lv_ll_t(struct_obj) (*((lv_ll_t*)mp_write_value_ptr_lv_ll_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_ll_t(void *field)
 {
@@ -12771,6 +13122,8 @@ static int py_lv_draw_unit_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_unit_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "next") == 0) { data->next = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "name") == 0) { data->name = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "idx") == 0) { data->idx = (int32_t)mp_obj_get_int(value); result = 0; }
@@ -12779,6 +13132,10 @@ static int py_lv_draw_unit_t_setattro(PyObject *self, PyObject *name, PyObject *
     if (strcmp(attr, "wait_for_finish_cb") == 0) { data->wait_for_finish_cb = (void*)mp_lv_callback(value, NULL, "lv_draw_unit_t_wait_for_finish_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "delete_cb") == 0) { data->delete_cb = (void*)mp_lv_callback(value, NULL, "lv_draw_unit_t_delete_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "event_cb") == 0) { data->event_cb = (void*)mp_lv_callback(value, NULL, "lv_draw_unit_t_event_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_unit_t' object has no attribute '%s'", attr);
     }
@@ -12818,7 +13175,28 @@ static inline void* mp_write_ptr_lv_draw_unit_t(PyObject *self_in)
     return (lv_draw_unit_t*)self->data;
 }
 
-#define mp_write_lv_draw_unit_t(struct_obj) (*((lv_draw_unit_t*)mp_write_ptr_lv_draw_unit_t(struct_obj)))
+static lv_draw_unit_t mp_write_scratch_lv_draw_unit_t;
+
+static inline void* mp_write_value_ptr_lv_draw_unit_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_unit_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_unit_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_unit_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_unit_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_unit_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_unit_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_unit_t, 0, sizeof(lv_draw_unit_t));
+    return &mp_write_scratch_lv_draw_unit_t;
+}
+
+#define mp_write_lv_draw_unit_t(struct_obj) (*((lv_draw_unit_t*)mp_write_value_ptr_lv_draw_unit_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_unit_t(void *field)
 {
@@ -12880,6 +13258,8 @@ static int py_lv_draw_task_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_task_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "next") == 0) { data->next = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "type") == 0) { data->type = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "area") == 0) { data->area = mp_write_lv_area_t(value); result = 0; }
@@ -12893,6 +13273,10 @@ static int py_lv_draw_task_t_setattro(PyObject *self, PyObject *name, PyObject *
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "preferred_draw_unit_id") == 0) { data->preferred_draw_unit_id = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "preference_score") == 0) { data->preference_score = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_task_t' object has no attribute '%s'", attr);
     }
@@ -12932,7 +13316,28 @@ static inline void* mp_write_ptr_lv_draw_task_t(PyObject *self_in)
     return (lv_draw_task_t*)self->data;
 }
 
-#define mp_write_lv_draw_task_t(struct_obj) (*((lv_draw_task_t*)mp_write_ptr_lv_draw_task_t(struct_obj)))
+static lv_draw_task_t mp_write_scratch_lv_draw_task_t;
+
+static inline void* mp_write_value_ptr_lv_draw_task_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_task_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_task_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_task_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_task_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_task_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_task_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_task_t, 0, sizeof(lv_draw_task_t));
+    return &mp_write_scratch_lv_draw_task_t;
+}
+
+#define mp_write_lv_draw_task_t(struct_obj) (*((lv_draw_task_t*)mp_write_value_ptr_lv_draw_task_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_task_t(void *field)
 {
@@ -12985,10 +13390,16 @@ static int py_lv_color32_t_setattro(PyObject *self, PyObject *name, PyObject *va
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_color32_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "blue") == 0) { data->blue = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "green") == 0) { data->green = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "red") == 0) { data->red = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "alpha") == 0) { data->alpha = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_color32_t' object has no attribute '%s'", attr);
     }
@@ -13028,7 +13439,28 @@ static inline void* mp_write_ptr_lv_color32_t(PyObject *self_in)
     return (lv_color32_t*)self->data;
 }
 
-#define mp_write_lv_color32_t(struct_obj) (*((lv_color32_t*)mp_write_ptr_lv_color32_t(struct_obj)))
+static lv_color32_t mp_write_scratch_lv_color32_t;
+
+static inline void* mp_write_value_ptr_lv_color32_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color32_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color32_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color32_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color32_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color32_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color32_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color32_t, 0, sizeof(lv_color32_t));
+    return &mp_write_scratch_lv_color32_t;
+}
+
+#define mp_write_lv_color32_t(struct_obj) (*((lv_color32_t*)mp_write_value_ptr_lv_color32_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_color32_t(void *field)
 {
@@ -13090,6 +13522,8 @@ static int py_lv_layer_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_layer_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "draw_buf") == 0) { data->draw_buf = (void*)mp_write_ptr_lv_draw_buf_t(value); result = 0; }
     if (strcmp(attr, "draw_task_head") == 0) { data->draw_task_head = (void*)mp_write_ptr_lv_draw_task_t(value); result = 0; }
     if (strcmp(attr, "parent") == 0) { data->parent = (void*)mp_to_ptr(value); result = 0; }
@@ -13103,6 +13537,10 @@ static int py_lv_layer_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "color_format") == 0) { data->color_format = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "all_tasks_added") == 0) { data->all_tasks_added = mp_obj_is_true(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_layer_t' object has no attribute '%s'", attr);
     }
@@ -13142,7 +13580,28 @@ static inline void* mp_write_ptr_lv_layer_t(PyObject *self_in)
     return (lv_layer_t*)self->data;
 }
 
-#define mp_write_lv_layer_t(struct_obj) (*((lv_layer_t*)mp_write_ptr_lv_layer_t(struct_obj)))
+static lv_layer_t mp_write_scratch_lv_layer_t;
+
+static inline void* mp_write_value_ptr_lv_layer_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_layer_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_layer_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_layer_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_layer_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_layer_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_layer_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_layer_t, 0, sizeof(lv_layer_t));
+    return &mp_write_scratch_lv_layer_t;
+}
+
+#define mp_write_lv_layer_t(struct_obj) (*((lv_layer_t*)mp_write_value_ptr_lv_layer_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_layer_t(void *field)
 {
@@ -13202,11 +13661,17 @@ static int py_lv_array_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_array_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "data") == 0) { data->data = (void*)mp_array_to_u8ptr(value); result = 0; }
     if (strcmp(attr, "size") == 0) { data->size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "capacity") == 0) { data->capacity = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "element_size") == 0) { data->element_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "inner_alloc") == 0) { data->inner_alloc = mp_obj_is_true(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_array_t' object has no attribute '%s'", attr);
     }
@@ -13246,7 +13711,28 @@ static inline void* mp_write_ptr_lv_array_t(PyObject *self_in)
     return (lv_array_t*)self->data;
 }
 
-#define mp_write_lv_array_t(struct_obj) (*((lv_array_t*)mp_write_ptr_lv_array_t(struct_obj)))
+static lv_array_t mp_write_scratch_lv_array_t;
+
+static inline void* mp_write_value_ptr_lv_array_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_array_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_array_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_array_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_array_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_array_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_array_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_array_t, 0, sizeof(lv_array_t));
+    return &mp_write_scratch_lv_array_t;
+}
+
+#define mp_write_lv_array_t(struct_obj) (*((lv_array_t*)mp_write_value_ptr_lv_array_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_array_t(void *field)
 {
@@ -13298,9 +13784,15 @@ static int py_lv_event_list_t_setattro(PyObject *self, PyObject *name, PyObject 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_event_list_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "array") == 0) { data->array = mp_write_lv_array_t(value); result = 0; }
     if (strcmp(attr, "is_traversing") == 0) { data->is_traversing = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "has_marked_deleting") == 0) { data->has_marked_deleting = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_event_list_t' object has no attribute '%s'", attr);
     }
@@ -13340,7 +13832,28 @@ static inline void* mp_write_ptr_lv_event_list_t(PyObject *self_in)
     return (lv_event_list_t*)self->data;
 }
 
-#define mp_write_lv_event_list_t(struct_obj) (*((lv_event_list_t*)mp_write_ptr_lv_event_list_t(struct_obj)))
+static lv_event_list_t mp_write_scratch_lv_event_list_t;
+
+static inline void* mp_write_value_ptr_lv_event_list_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_event_list_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_event_list_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_event_list_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_event_list_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_event_list_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_event_list_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_event_list_t, 0, sizeof(lv_event_list_t));
+    return &mp_write_scratch_lv_event_list_t;
+}
+
+#define mp_write_lv_event_list_t(struct_obj) (*((lv_event_list_t*)mp_write_value_ptr_lv_event_list_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_event_list_t(void *field)
 {
@@ -13404,6 +13917,8 @@ static int py_lv_theme_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_theme_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "apply_cb") == 0) { data->apply_cb = mp_lv_callback(value, lv_theme_t_apply_cb_callback, "lv_theme_t_apply_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "parent") == 0) { data->parent = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
@@ -13414,6 +13929,10 @@ static int py_lv_theme_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "font_normal") == 0) { data->font_normal = (void*)mp_write_ptr_lv_font_t(value); result = 0; }
     if (strcmp(attr, "font_large") == 0) { data->font_large = (void*)mp_write_ptr_lv_font_t(value); result = 0; }
     if (strcmp(attr, "flags") == 0) { data->flags = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_theme_t' object has no attribute '%s'", attr);
     }
@@ -13453,7 +13972,28 @@ static inline void* mp_write_ptr_lv_theme_t(PyObject *self_in)
     return (lv_theme_t*)self->data;
 }
 
-#define mp_write_lv_theme_t(struct_obj) (*((lv_theme_t*)mp_write_ptr_lv_theme_t(struct_obj)))
+static lv_theme_t mp_write_scratch_lv_theme_t;
+
+static inline void* mp_write_value_ptr_lv_theme_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_theme_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_theme_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_theme_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_theme_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_theme_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_theme_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_theme_t, 0, sizeof(lv_theme_t));
+    return &mp_write_scratch_lv_theme_t;
+}
+
+#define mp_write_lv_theme_t(struct_obj) (*((lv_theme_t*)mp_write_value_ptr_lv_theme_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_theme_t(void *field)
 {
@@ -13514,6 +14054,8 @@ static int py_lv_timer_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_timer_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "period") == 0) { data->period = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "last_run") == 0) { data->last_run = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "timer_cb") == 0) { data->timer_cb = mp_lv_callback(value, lv_timer_t_timer_cb_callback, "lv_timer_t_timer_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -13521,6 +14063,10 @@ static int py_lv_timer_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "repeat_count") == 0) { data->repeat_count = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "paused") == 0) { data->paused = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "auto_delete") == 0) { data->auto_delete = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_timer_t' object has no attribute '%s'", attr);
     }
@@ -13560,7 +14106,28 @@ static inline void* mp_write_ptr_lv_timer_t(PyObject *self_in)
     return (lv_timer_t*)self->data;
 }
 
-#define mp_write_lv_timer_t(struct_obj) (*((lv_timer_t*)mp_write_ptr_lv_timer_t(struct_obj)))
+static lv_timer_t mp_write_scratch_lv_timer_t;
+
+static inline void* mp_write_value_ptr_lv_timer_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_timer_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_timer_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_timer_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_timer_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_timer_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_timer_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_timer_t, 0, sizeof(lv_timer_t));
+    return &mp_write_scratch_lv_timer_t;
+}
+
+#define mp_write_lv_timer_t(struct_obj) (*((lv_timer_t*)mp_write_value_ptr_lv_timer_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_timer_t(void *field)
 {
@@ -13662,6 +14229,8 @@ static int py_lv_display_t_setattro(PyObject *self, PyObject *name, PyObject *va
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_display_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "hor_res") == 0) { data->hor_res = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "ver_res") == 0) { data->ver_res = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "physical_hor_res") == 0) { data->physical_hor_res = (int32_t)mp_obj_get_int(value); result = 0; }
@@ -13715,6 +14284,10 @@ static int py_lv_display_t_setattro(PyObject *self, PyObject *name, PyObject *va
     if (strcmp(attr, "last_activity_time") == 0) { data->last_activity_time = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "refreshed_area") == 0) { data->refreshed_area = mp_write_lv_area_t(value); result = 0; }
     if (strcmp(attr, "vsync_count") == 0) { data->vsync_count = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_display_t' object has no attribute '%s'", attr);
     }
@@ -13754,7 +14327,28 @@ static inline void* mp_write_ptr_lv_display_t(PyObject *self_in)
     return (lv_display_t*)self->data;
 }
 
-#define mp_write_lv_display_t(struct_obj) (*((lv_display_t*)mp_write_ptr_lv_display_t(struct_obj)))
+static lv_display_t mp_write_scratch_lv_display_t;
+
+static inline void* mp_write_value_ptr_lv_display_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_display_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_display_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_display_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_display_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_display_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_display_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_display_t, 0, sizeof(lv_display_t));
+    return &mp_write_scratch_lv_display_t;
+}
+
+#define mp_write_lv_display_t(struct_obj) (*((lv_display_t*)mp_write_value_ptr_lv_display_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_display_t(void *field)
 {
@@ -13915,6 +14509,8 @@ static int py_lv_obj_class_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_obj_class_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base_class") == 0) { data->base_class = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "constructor_cb") == 0) { data->constructor_cb = (void*)mp_lv_callback(value, lv_obj_class_t_constructor_cb_callback, "lv_obj_class_t_constructor_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "destructor_cb") == 0) { data->destructor_cb = (void*)mp_lv_callback(value, lv_obj_class_t_destructor_cb_callback, "lv_obj_class_t_destructor_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -13927,6 +14523,10 @@ static int py_lv_obj_class_t_setattro(PyObject *self, PyObject *name, PyObject *
     if (strcmp(attr, "group_def") == 0) { data->group_def = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "instance_size") == 0) { data->instance_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "theme_inheritable") == 0) { data->theme_inheritable = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_obj_class_t' object has no attribute '%s'", attr);
     }
@@ -13966,7 +14566,28 @@ static inline void* mp_write_ptr_lv_obj_class_t(PyObject *self_in)
     return (lv_obj_class_t*)self->data;
 }
 
-#define mp_write_lv_obj_class_t(struct_obj) (*((lv_obj_class_t*)mp_write_ptr_lv_obj_class_t(struct_obj)))
+static lv_obj_class_t mp_write_scratch_lv_obj_class_t;
+
+static inline void* mp_write_value_ptr_lv_obj_class_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_obj_class_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_obj_class_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_obj_class_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_obj_class_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_obj_class_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_obj_class_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_obj_class_t, 0, sizeof(lv_obj_class_t));
+    return &mp_write_scratch_lv_obj_class_t;
+}
+
+#define mp_write_lv_obj_class_t(struct_obj) (*((lv_obj_class_t*)mp_write_value_ptr_lv_obj_class_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_obj_class_t(void *field)
 {
@@ -14828,7 +15449,12 @@ static int py_lv_matrix_t_setattro(PyObject *self, PyObject *name, PyObject *val
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    
     (void)value;
+    if (PyErr_Occurred()) {
+        
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_matrix_t' object has no attribute '%s'", attr);
     }
@@ -15708,8 +16334,14 @@ static int py_lv_point_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_point_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "x") == 0) { data->x = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "y") == 0) { data->y = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_point_t' object has no attribute '%s'", attr);
     }
@@ -15749,7 +16381,28 @@ static inline void* mp_write_ptr_lv_point_t(PyObject *self_in)
     return (lv_point_t*)self->data;
 }
 
-#define mp_write_lv_point_t(struct_obj) (*((lv_point_t*)mp_write_ptr_lv_point_t(struct_obj)))
+static lv_point_t mp_write_scratch_lv_point_t;
+
+static inline void* mp_write_value_ptr_lv_point_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_point_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_point_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_point_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_point_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_point_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_point_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_point_t, 0, sizeof(lv_point_t));
+    return &mp_write_scratch_lv_point_t;
+}
+
+#define mp_write_lv_point_t(struct_obj) (*((lv_point_t*)mp_write_value_ptr_lv_point_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_point_t(void *field)
 {
@@ -17002,9 +17655,15 @@ static int py_lv_style_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_style_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "values_and_props") == 0) { data->values_and_props = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "has_group") == 0) { data->has_group = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "prop_cnt") == 0) { data->prop_cnt = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_style_t' object has no attribute '%s'", attr);
     }
@@ -17044,7 +17703,28 @@ static inline void* mp_write_ptr_lv_style_t(PyObject *self_in)
     return (lv_style_t*)self->data;
 }
 
-#define mp_write_lv_style_t(struct_obj) (*((lv_style_t*)mp_write_ptr_lv_style_t(struct_obj)))
+static lv_style_t mp_write_scratch_lv_style_t;
+
+static inline void* mp_write_value_ptr_lv_style_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_style_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_style_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_style_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_style_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_style_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_style_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_style_t, 0, sizeof(lv_style_t));
+    return &mp_write_scratch_lv_style_t;
+}
+
+#define mp_write_lv_style_t(struct_obj) (*((lv_style_t*)mp_write_value_ptr_lv_style_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_style_t(void *field)
 {
@@ -17404,9 +18084,15 @@ static int py_lv_style_value_t_setattro(PyObject *self, PyObject *name, PyObject
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_style_value_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "num") == 0) { data->num = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "ptr") == 0) { data->ptr = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_style_value_t' object has no attribute '%s'", attr);
     }
@@ -17446,7 +18132,28 @@ static inline void* mp_write_ptr_lv_style_value_t(PyObject *self_in)
     return (lv_style_value_t*)self->data;
 }
 
-#define mp_write_lv_style_value_t(struct_obj) (*((lv_style_value_t*)mp_write_ptr_lv_style_value_t(struct_obj)))
+static lv_style_value_t mp_write_scratch_lv_style_value_t;
+
+static inline void* mp_write_value_ptr_lv_style_value_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_style_value_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_style_value_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_style_value_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_style_value_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_style_value_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_style_value_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_style_value_t, 0, sizeof(lv_style_value_t));
+    return &mp_write_scratch_lv_style_value_t;
+}
+
+#define mp_write_lv_style_value_t(struct_obj) (*((lv_style_value_t*)mp_write_value_ptr_lv_style_value_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_style_value_t(void *field)
 {
@@ -21848,10 +22555,16 @@ static int py_lv_subject_value_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_subject_value_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "num") == 0) { data->num = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "pointer") == 0) { data->pointer = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "float_v") == 0) { data->float_v = (float)mp_obj_get_float(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_subject_value_t' object has no attribute '%s'", attr);
     }
@@ -21891,7 +22604,28 @@ static inline void* mp_write_ptr_lv_subject_value_t(PyObject *self_in)
     return (lv_subject_value_t*)self->data;
 }
 
-#define mp_write_lv_subject_value_t(struct_obj) (*((lv_subject_value_t*)mp_write_ptr_lv_subject_value_t(struct_obj)))
+static lv_subject_value_t mp_write_scratch_lv_subject_value_t;
+
+static inline void* mp_write_value_ptr_lv_subject_value_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_subject_value_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_subject_value_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_subject_value_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_subject_value_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_subject_value_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_subject_value_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_subject_value_t, 0, sizeof(lv_subject_value_t));
+    return &mp_write_scratch_lv_subject_value_t;
+}
+
+#define mp_write_lv_subject_value_t(struct_obj) (*((lv_subject_value_t*)mp_write_value_ptr_lv_subject_value_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_subject_value_t(void *field)
 {
@@ -21949,6 +22683,8 @@ static int py_lv_subject_t_setattro(PyObject *self, PyObject *name, PyObject *va
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_subject_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "subs_ll") == 0) { data->subs_ll = mp_write_lv_ll_t(value); result = 0; }
     if (strcmp(attr, "value") == 0) { data->value = mp_write_lv_subject_value_t(value); result = 0; }
     if (strcmp(attr, "prev_value") == 0) { data->prev_value = mp_write_lv_subject_value_t(value); result = 0; }
@@ -21958,6 +22694,10 @@ static int py_lv_subject_t_setattro(PyObject *self, PyObject *name, PyObject *va
     if (strcmp(attr, "type") == 0) { data->type = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "size") == 0) { data->size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "notify_restart_query") == 0) { data->notify_restart_query = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_subject_t' object has no attribute '%s'", attr);
     }
@@ -21997,7 +22737,28 @@ static inline void* mp_write_ptr_lv_subject_t(PyObject *self_in)
     return (lv_subject_t*)self->data;
 }
 
-#define mp_write_lv_subject_t(struct_obj) (*((lv_subject_t*)mp_write_ptr_lv_subject_t(struct_obj)))
+static lv_subject_t mp_write_scratch_lv_subject_t;
+
+static inline void* mp_write_value_ptr_lv_subject_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_subject_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_subject_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_subject_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_subject_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_subject_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_subject_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_subject_t, 0, sizeof(lv_subject_t));
+    return &mp_write_scratch_lv_subject_t;
+}
+
+#define mp_write_lv_subject_t(struct_obj) (*((lv_subject_t*)mp_write_value_ptr_lv_subject_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_subject_t(void *field)
 {
@@ -22058,6 +22819,8 @@ static int py_lv_observer_t_setattro(PyObject *self, PyObject *name, PyObject *v
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_observer_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "subject") == 0) { data->subject = (void*)mp_write_ptr_lv_subject_t(value); result = 0; }
     if (strcmp(attr, "cb") == 0) { data->cb = mp_lv_callback(value, lv_observer_t_cb_callback, "lv_observer_t_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "target") == 0) { data->target = (void*)mp_to_ptr(value); result = 0; }
@@ -22065,6 +22828,10 @@ static int py_lv_observer_t_setattro(PyObject *self, PyObject *name, PyObject *v
     if (strcmp(attr, "auto_free_user_data") == 0) { data->auto_free_user_data = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "notified") == 0) { data->notified = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "for_obj") == 0) { data->for_obj = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_observer_t' object has no attribute '%s'", attr);
     }
@@ -22104,7 +22871,28 @@ static inline void* mp_write_ptr_lv_observer_t(PyObject *self_in)
     return (lv_observer_t*)self->data;
 }
 
-#define mp_write_lv_observer_t(struct_obj) (*((lv_observer_t*)mp_write_ptr_lv_observer_t(struct_obj)))
+static lv_observer_t mp_write_scratch_lv_observer_t;
+
+static inline void* mp_write_value_ptr_lv_observer_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_observer_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_observer_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_observer_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_observer_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_observer_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_observer_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_observer_t, 0, sizeof(lv_observer_t));
+    return &mp_write_scratch_lv_observer_t;
+}
+
+#define mp_write_lv_observer_t(struct_obj) (*((lv_observer_t*)mp_write_value_ptr_lv_observer_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_observer_t(void *field)
 {
@@ -22233,6 +23021,8 @@ static int py_lv_draw_dsc_base_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_dsc_base_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "obj") == 0) { data->obj = (void*)mp_to_lv(value); result = 0; }
     if (strcmp(attr, "part") == 0) { data->part = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "id1") == 0) { data->id1 = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -22246,6 +23036,10 @@ static int py_lv_draw_dsc_base_t_setattro(PyObject *self, PyObject *name, PyObje
     if (strcmp(attr, "drop_shadow_quality") == 0) { data->drop_shadow_quality = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "dsc_size") == 0) { data->dsc_size = (size_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_dsc_base_t' object has no attribute '%s'", attr);
     }
@@ -22285,7 +23079,28 @@ static inline void* mp_write_ptr_lv_draw_dsc_base_t(PyObject *self_in)
     return (lv_draw_dsc_base_t*)self->data;
 }
 
-#define mp_write_lv_draw_dsc_base_t(struct_obj) (*((lv_draw_dsc_base_t*)mp_write_ptr_lv_draw_dsc_base_t(struct_obj)))
+static lv_draw_dsc_base_t mp_write_scratch_lv_draw_dsc_base_t;
+
+static inline void* mp_write_value_ptr_lv_draw_dsc_base_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_dsc_base_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_dsc_base_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_dsc_base_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_dsc_base_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_dsc_base_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_dsc_base_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_dsc_base_t, 0, sizeof(lv_draw_dsc_base_t));
+    return &mp_write_scratch_lv_draw_dsc_base_t;
+}
+
+#define mp_write_lv_draw_dsc_base_t(struct_obj) (*((lv_draw_dsc_base_t*)mp_write_value_ptr_lv_draw_dsc_base_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_dsc_base_t(void *field)
 {
@@ -22361,6 +23176,8 @@ static int py_lv_draw_rect_dsc_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_rect_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "radius") == 0) { data->radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "bg_image_src") == 0) { data->bg_image_src = (void*)mp_to_ptr(value); result = 0; }
@@ -22388,6 +23205,10 @@ static int py_lv_draw_rect_dsc_t_setattro(PyObject *self, PyObject *name, PyObje
     if (strcmp(attr, "shadow_offset_x") == 0) { data->shadow_offset_x = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "shadow_offset_y") == 0) { data->shadow_offset_y = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "shadow_spread") == 0) { data->shadow_spread = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_rect_dsc_t' object has no attribute '%s'", attr);
     }
@@ -22427,7 +23248,28 @@ static inline void* mp_write_ptr_lv_draw_rect_dsc_t(PyObject *self_in)
     return (lv_draw_rect_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_rect_dsc_t(struct_obj) (*((lv_draw_rect_dsc_t*)mp_write_ptr_lv_draw_rect_dsc_t(struct_obj)))
+static lv_draw_rect_dsc_t mp_write_scratch_lv_draw_rect_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_rect_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_rect_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_rect_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_rect_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_rect_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_rect_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_rect_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_rect_dsc_t, 0, sizeof(lv_draw_rect_dsc_t));
+    return &mp_write_scratch_lv_draw_rect_dsc_t;
+}
+
+#define mp_write_lv_draw_rect_dsc_t(struct_obj) (*((lv_draw_rect_dsc_t*)mp_write_value_ptr_lv_draw_rect_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_rect_dsc_t(void *field)
 {
@@ -22510,9 +23352,15 @@ static int py_lv_draw_label_hint_t_setattro(PyObject *self, PyObject *name, PyOb
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_label_hint_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "line_start") == 0) { data->line_start = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "y") == 0) { data->y = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "coord_y") == 0) { data->coord_y = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_label_hint_t' object has no attribute '%s'", attr);
     }
@@ -22552,7 +23400,28 @@ static inline void* mp_write_ptr_lv_draw_label_hint_t(PyObject *self_in)
     return (lv_draw_label_hint_t*)self->data;
 }
 
-#define mp_write_lv_draw_label_hint_t(struct_obj) (*((lv_draw_label_hint_t*)mp_write_ptr_lv_draw_label_hint_t(struct_obj)))
+static lv_draw_label_hint_t mp_write_scratch_lv_draw_label_hint_t;
+
+static inline void* mp_write_value_ptr_lv_draw_label_hint_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_label_hint_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_label_hint_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_label_hint_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_label_hint_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_label_hint_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_label_hint_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_label_hint_t, 0, sizeof(lv_draw_label_hint_t));
+    return &mp_write_scratch_lv_draw_label_hint_t;
+}
+
+#define mp_write_lv_draw_label_hint_t(struct_obj) (*((lv_draw_label_hint_t*)mp_write_value_ptr_lv_draw_label_hint_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_label_hint_t(void *field)
 {
@@ -22628,6 +23497,8 @@ static int py_lv_draw_label_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_label_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "text") == 0) { data->text = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "text_size") == 0) { data->text_size = mp_write_lv_point_t(value); result = 0; }
@@ -22655,6 +23526,10 @@ static int py_lv_draw_label_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     if (strcmp(attr, "hint") == 0) { data->hint = (void*)mp_write_ptr_lv_draw_label_hint_t(value); result = 0; }
     if (strcmp(attr, "outline_stroke_color") == 0) { data->outline_stroke_color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "outline_stroke_width") == 0) { data->outline_stroke_width = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_label_dsc_t' object has no attribute '%s'", attr);
     }
@@ -22694,7 +23569,28 @@ static inline void* mp_write_ptr_lv_draw_label_dsc_t(PyObject *self_in)
     return (lv_draw_label_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_label_dsc_t(struct_obj) (*((lv_draw_label_dsc_t*)mp_write_ptr_lv_draw_label_dsc_t(struct_obj)))
+static lv_draw_label_dsc_t mp_write_scratch_lv_draw_label_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_label_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_label_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_label_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_label_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_label_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_label_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_label_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_label_dsc_t, 0, sizeof(lv_draw_label_dsc_t));
+    return &mp_write_scratch_lv_draw_label_dsc_t;
+}
+
+#define mp_write_lv_draw_label_dsc_t(struct_obj) (*((lv_draw_label_dsc_t*)mp_write_value_ptr_lv_draw_label_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_label_dsc_t(void *field)
 {
@@ -22777,9 +23673,15 @@ static int py_lv_draw_image_sup_t_setattro(PyObject *self, PyObject *name, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_image_sup_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "alpha_color") == 0) { data->alpha_color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "palette") == 0) { data->palette = (void*)mp_write_ptr_lv_color32_t(value); result = 0; }
     if (strcmp(attr, "palette_size") == 0) { data->palette_size = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_image_sup_t' object has no attribute '%s'", attr);
     }
@@ -22819,7 +23721,28 @@ static inline void* mp_write_ptr_lv_draw_image_sup_t(PyObject *self_in)
     return (lv_draw_image_sup_t*)self->data;
 }
 
-#define mp_write_lv_draw_image_sup_t(struct_obj) (*((lv_draw_image_sup_t*)mp_write_ptr_lv_draw_image_sup_t(struct_obj)))
+static lv_draw_image_sup_t mp_write_scratch_lv_draw_image_sup_t;
+
+static inline void* mp_write_value_ptr_lv_draw_image_sup_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_image_sup_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_image_sup_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_image_sup_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_image_sup_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_image_sup_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_image_sup_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_image_sup_t, 0, sizeof(lv_draw_image_sup_t));
+    return &mp_write_scratch_lv_draw_image_sup_t;
+}
+
+#define mp_write_lv_draw_image_sup_t(struct_obj) (*((lv_draw_image_sup_t*)mp_write_value_ptr_lv_draw_image_sup_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_image_sup_t(void *field)
 {
@@ -22873,11 +23796,17 @@ static int py_lv_image_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "header") == 0) { data->header = mp_write_lv_image_header_t(value); result = 0; }
     if (strcmp(attr, "data_size") == 0) { data->data_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "data") == 0) { data->data = (void*)mp_array_to_u8ptr(value); result = 0; }
     if (strcmp(attr, "reserved") == 0) { data->reserved = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "reserved_2") == 0) { data->reserved_2 = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_dsc_t' object has no attribute '%s'", attr);
     }
@@ -22917,7 +23846,28 @@ static inline void* mp_write_ptr_lv_image_dsc_t(PyObject *self_in)
     return (lv_image_dsc_t*)self->data;
 }
 
-#define mp_write_lv_image_dsc_t(struct_obj) (*((lv_image_dsc_t*)mp_write_ptr_lv_image_dsc_t(struct_obj)))
+static lv_image_dsc_t mp_write_scratch_lv_image_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_image_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_dsc_t, 0, sizeof(lv_image_dsc_t));
+    return &mp_write_scratch_lv_image_dsc_t;
+}
+
+#define mp_write_lv_image_dsc_t(struct_obj) (*((lv_image_dsc_t*)mp_write_value_ptr_lv_image_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_dsc_t(void *field)
 {
@@ -22986,6 +23936,8 @@ static int py_lv_draw_image_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_image_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "src") == 0) { data->src = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "header") == 0) { data->header = mp_write_lv_image_header_t(value); result = 0; }
@@ -23006,6 +23958,10 @@ static int py_lv_draw_image_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     if (strcmp(attr, "sup") == 0) { data->sup = (void*)mp_write_ptr_lv_draw_image_sup_t(value); result = 0; }
     if (strcmp(attr, "image_area") == 0) { data->image_area = mp_write_lv_area_t(value); result = 0; }
     if (strcmp(attr, "bitmap_mask_src") == 0) { data->bitmap_mask_src = (void*)mp_write_ptr_lv_image_dsc_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_image_dsc_t' object has no attribute '%s'", attr);
     }
@@ -23045,7 +24001,28 @@ static inline void* mp_write_ptr_lv_draw_image_dsc_t(PyObject *self_in)
     return (lv_draw_image_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_image_dsc_t(struct_obj) (*((lv_draw_image_dsc_t*)mp_write_ptr_lv_draw_image_dsc_t(struct_obj)))
+static lv_draw_image_dsc_t mp_write_scratch_lv_draw_image_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_image_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_image_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_image_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_image_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_image_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_image_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_image_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_image_dsc_t, 0, sizeof(lv_draw_image_dsc_t));
+    return &mp_write_scratch_lv_draw_image_dsc_t;
+}
+
+#define mp_write_lv_draw_image_dsc_t(struct_obj) (*((lv_draw_image_dsc_t*)mp_write_value_ptr_lv_draw_image_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_image_dsc_t(void *field)
 {
@@ -23127,8 +24104,14 @@ static int py_lv_point_precise_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_point_precise_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "x") == 0) { data->x = (float)mp_obj_get_float(value); result = 0; }
     if (strcmp(attr, "y") == 0) { data->y = (float)mp_obj_get_float(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_point_precise_t' object has no attribute '%s'", attr);
     }
@@ -23168,7 +24151,28 @@ static inline void* mp_write_ptr_lv_point_precise_t(PyObject *self_in)
     return (lv_point_precise_t*)self->data;
 }
 
-#define mp_write_lv_point_precise_t(struct_obj) (*((lv_point_precise_t*)mp_write_ptr_lv_point_precise_t(struct_obj)))
+static lv_point_precise_t mp_write_scratch_lv_point_precise_t;
+
+static inline void* mp_write_value_ptr_lv_point_precise_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_point_precise_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_point_precise_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_point_precise_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_point_precise_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_point_precise_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_point_precise_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_point_precise_t, 0, sizeof(lv_point_precise_t));
+    return &mp_write_scratch_lv_point_precise_t;
+}
+
+#define mp_write_lv_point_precise_t(struct_obj) (*((lv_point_precise_t*)mp_write_value_ptr_lv_point_precise_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_point_precise_t(void *field)
 {
@@ -23230,6 +24234,8 @@ static int py_lv_draw_line_dsc_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_line_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "p1") == 0) { data->p1 = mp_write_lv_point_precise_t(value); result = 0; }
     if (strcmp(attr, "p2") == 0) { data->p2 = mp_write_lv_point_precise_t(value); result = 0; }
@@ -23243,6 +24249,10 @@ static int py_lv_draw_line_dsc_t_setattro(PyObject *self, PyObject *name, PyObje
     if (strcmp(attr, "round_start") == 0) { data->round_start = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "round_end") == 0) { data->round_end = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "raw_end") == 0) { data->raw_end = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_line_dsc_t' object has no attribute '%s'", attr);
     }
@@ -23282,7 +24292,28 @@ static inline void* mp_write_ptr_lv_draw_line_dsc_t(PyObject *self_in)
     return (lv_draw_line_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_line_dsc_t(struct_obj) (*((lv_draw_line_dsc_t*)mp_write_ptr_lv_draw_line_dsc_t(struct_obj)))
+static lv_draw_line_dsc_t mp_write_scratch_lv_draw_line_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_line_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_line_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_line_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_line_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_line_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_line_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_line_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_line_dsc_t, 0, sizeof(lv_draw_line_dsc_t));
+    return &mp_write_scratch_lv_draw_line_dsc_t;
+}
+
+#define mp_write_lv_draw_line_dsc_t(struct_obj) (*((lv_draw_line_dsc_t*)mp_write_value_ptr_lv_draw_line_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_line_dsc_t(void *field)
 {
@@ -23372,6 +24403,8 @@ static int py_lv_draw_arc_dsc_t_setattro(PyObject *self, PyObject *name, PyObjec
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_arc_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "width") == 0) { data->width = (int32_t)mp_obj_get_int(value); result = 0; }
@@ -23382,6 +24415,10 @@ static int py_lv_draw_arc_dsc_t_setattro(PyObject *self, PyObject *name, PyObjec
     if (strcmp(attr, "radius") == 0) { data->radius = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "rounded") == 0) { data->rounded = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_arc_dsc_t' object has no attribute '%s'", attr);
     }
@@ -23421,7 +24458,28 @@ static inline void* mp_write_ptr_lv_draw_arc_dsc_t(PyObject *self_in)
     return (lv_draw_arc_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_arc_dsc_t(struct_obj) (*((lv_draw_arc_dsc_t*)mp_write_ptr_lv_draw_arc_dsc_t(struct_obj)))
+static lv_draw_arc_dsc_t mp_write_scratch_lv_draw_arc_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_arc_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_arc_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_arc_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_arc_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_arc_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_arc_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_arc_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_arc_dsc_t, 0, sizeof(lv_draw_arc_dsc_t));
+    return &mp_write_scratch_lv_draw_arc_dsc_t;
+}
+
+#define mp_write_lv_draw_arc_dsc_t(struct_obj) (*((lv_draw_arc_dsc_t*)mp_write_value_ptr_lv_draw_arc_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_arc_dsc_t(void *field)
 {
@@ -23505,10 +24563,16 @@ static int py_lv_draw_blur_dsc_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_blur_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "blur_radius") == 0) { data->blur_radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "corner_radius") == 0) { data->corner_radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "quality") == 0) { data->quality = (int)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_blur_dsc_t' object has no attribute '%s'", attr);
     }
@@ -23548,7 +24612,28 @@ static inline void* mp_write_ptr_lv_draw_blur_dsc_t(PyObject *self_in)
     return (lv_draw_blur_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_blur_dsc_t(struct_obj) (*((lv_draw_blur_dsc_t*)mp_write_ptr_lv_draw_blur_dsc_t(struct_obj)))
+static lv_draw_blur_dsc_t mp_write_scratch_lv_draw_blur_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_blur_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_blur_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_blur_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_blur_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_blur_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_blur_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_blur_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_blur_dsc_t, 0, sizeof(lv_draw_blur_dsc_t));
+    return &mp_write_scratch_lv_draw_blur_dsc_t;
+}
+
+#define mp_write_lv_draw_blur_dsc_t(struct_obj) (*((lv_draw_blur_dsc_t*)mp_write_value_ptr_lv_draw_blur_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_blur_dsc_t(void *field)
 {
@@ -23846,6 +24931,8 @@ static int py_lv_event_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_event_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "current_target") == 0) { data->current_target = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "original_target") == 0) { data->original_target = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "code") == 0) { data->code = (int)mp_obj_get_int(value); result = 0; }
@@ -23856,6 +24943,10 @@ static int py_lv_event_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "stop_processing") == 0) { data->stop_processing = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "stop_bubbling") == 0) { data->stop_bubbling = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "stop_trickling") == 0) { data->stop_trickling = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_event_t' object has no attribute '%s'", attr);
     }
@@ -23895,7 +24986,28 @@ static inline void* mp_write_ptr_lv_event_t(PyObject *self_in)
     return (lv_event_t*)self->data;
 }
 
-#define mp_write_lv_event_t(struct_obj) (*((lv_event_t*)mp_write_ptr_lv_event_t(struct_obj)))
+static lv_event_t mp_write_scratch_lv_event_t;
+
+static inline void* mp_write_value_ptr_lv_event_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_event_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_event_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_event_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_event_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_event_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_event_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_event_t, 0, sizeof(lv_event_t));
+    return &mp_write_scratch_lv_event_t;
+}
+
+#define mp_write_lv_event_t(struct_obj) (*((lv_event_t*)mp_write_value_ptr_lv_event_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_event_t(void *field)
 {
@@ -23989,9 +25101,15 @@ static int py_lv_event_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_event_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "cb") == 0) { data->cb = mp_lv_callback(value, NULL, "lv_event_dsc_t_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "filter") == 0) { data->filter = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_event_dsc_t' object has no attribute '%s'", attr);
     }
@@ -24031,7 +25149,28 @@ static inline void* mp_write_ptr_lv_event_dsc_t(PyObject *self_in)
     return (lv_event_dsc_t*)self->data;
 }
 
-#define mp_write_lv_event_dsc_t(struct_obj) (*((lv_event_dsc_t*)mp_write_ptr_lv_event_dsc_t(struct_obj)))
+static lv_event_dsc_t mp_write_scratch_lv_event_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_event_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_event_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_event_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_event_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_event_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_event_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_event_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_event_dsc_t, 0, sizeof(lv_event_dsc_t));
+    return &mp_write_scratch_lv_event_dsc_t;
+}
+
+#define mp_write_lv_event_dsc_t(struct_obj) (*((lv_event_dsc_t*)mp_write_value_ptr_lv_event_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_event_dsc_t(void *field)
 {
@@ -24789,6 +25928,8 @@ static int py_lv_group_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_group_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "obj_ll") == 0) { data->obj_ll = mp_write_lv_ll_t(value); result = 0; }
     if (strcmp(attr, "obj_focus") == 0) { data->obj_focus = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "focus_cb") == 0) { data->focus_cb = mp_lv_callback(value, lv_group_t_focus_cb_callback, "lv_group_t_focus_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -24798,6 +25939,10 @@ static int py_lv_group_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "editing") == 0) { data->editing = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "refocus_policy") == 0) { data->refocus_policy = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "wrap") == 0) { data->wrap = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_group_t' object has no attribute '%s'", attr);
     }
@@ -24837,7 +25982,28 @@ static inline void* mp_write_ptr_lv_group_t(PyObject *self_in)
     return (lv_group_t*)self->data;
 }
 
-#define mp_write_lv_group_t(struct_obj) (*((lv_group_t*)mp_write_ptr_lv_group_t(struct_obj)))
+static lv_group_t mp_write_scratch_lv_group_t;
+
+static inline void* mp_write_value_ptr_lv_group_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_group_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_group_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_group_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_group_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_group_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_group_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_group_t, 0, sizeof(lv_group_t));
+    return &mp_write_scratch_lv_group_t;
+}
+
+#define mp_write_lv_group_t(struct_obj) (*((lv_group_t*)mp_write_value_ptr_lv_group_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_group_t(void *field)
 {
@@ -25201,10 +26367,16 @@ static int py_lv_anim_timeline_dsc_t_setattro(PyObject *self, PyObject *name, Py
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_anim_timeline_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "anim") == 0) { data->anim = mp_write_lv_anim_t(value); result = 0; }
     if (strcmp(attr, "start_time") == 0) { data->start_time = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "is_started") == 0) { data->is_started = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "is_completed") == 0) { data->is_completed = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_anim_timeline_dsc_t' object has no attribute '%s'", attr);
     }
@@ -25244,7 +26416,28 @@ static inline void* mp_write_ptr_lv_anim_timeline_dsc_t(PyObject *self_in)
     return (lv_anim_timeline_dsc_t*)self->data;
 }
 
-#define mp_write_lv_anim_timeline_dsc_t(struct_obj) (*((lv_anim_timeline_dsc_t*)mp_write_ptr_lv_anim_timeline_dsc_t(struct_obj)))
+static lv_anim_timeline_dsc_t mp_write_scratch_lv_anim_timeline_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_anim_timeline_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_anim_timeline_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_anim_timeline_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_anim_timeline_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_anim_timeline_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_anim_timeline_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_anim_timeline_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_anim_timeline_dsc_t, 0, sizeof(lv_anim_timeline_dsc_t));
+    return &mp_write_scratch_lv_anim_timeline_dsc_t;
+}
+
+#define mp_write_lv_anim_timeline_dsc_t(struct_obj) (*((lv_anim_timeline_dsc_t*)mp_write_value_ptr_lv_anim_timeline_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_anim_timeline_dsc_t(void *field)
 {
@@ -25301,6 +26494,8 @@ static int py_lv_anim_timeline_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_anim_timeline_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "anim_dsc") == 0) { data->anim_dsc = (void*)mp_write_ptr_lv_anim_timeline_dsc_t(value); result = 0; }
     if (strcmp(attr, "anim_dsc_cnt") == 0) { data->anim_dsc_cnt = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "act_time") == 0) { data->act_time = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -25309,6 +26504,10 @@ static int py_lv_anim_timeline_t_setattro(PyObject *self, PyObject *name, PyObje
     if (strcmp(attr, "repeat_count") == 0) { data->repeat_count = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "repeat_delay") == 0) { data->repeat_delay = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_anim_timeline_t' object has no attribute '%s'", attr);
     }
@@ -25348,7 +26547,28 @@ static inline void* mp_write_ptr_lv_anim_timeline_t(PyObject *self_in)
     return (lv_anim_timeline_t*)self->data;
 }
 
-#define mp_write_lv_anim_timeline_t(struct_obj) (*((lv_anim_timeline_t*)mp_write_ptr_lv_anim_timeline_t(struct_obj)))
+static lv_anim_timeline_t mp_write_scratch_lv_anim_timeline_t;
+
+static inline void* mp_write_value_ptr_lv_anim_timeline_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_anim_timeline_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_anim_timeline_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_anim_timeline_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_anim_timeline_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_anim_timeline_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_anim_timeline_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_anim_timeline_t, 0, sizeof(lv_anim_timeline_t));
+    return &mp_write_scratch_lv_anim_timeline_t;
+}
+
+#define mp_write_lv_anim_timeline_t(struct_obj) (*((lv_anim_timeline_t*)mp_write_value_ptr_lv_anim_timeline_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_anim_timeline_t(void *field)
 {
@@ -25496,11 +26716,17 @@ static int py_lv_subject_increment_dsc_t_setattro(PyObject *self, PyObject *name
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_subject_increment_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "subject") == 0) { data->subject = (void*)mp_write_ptr_lv_subject_t(value); result = 0; }
     if (strcmp(attr, "step") == 0) { data->step = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "rollover") == 0) { data->rollover = mp_obj_is_true(value); result = 0; }
     if (strcmp(attr, "min_value") == 0) { data->min_value = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "max_value") == 0) { data->max_value = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_subject_increment_dsc_t' object has no attribute '%s'", attr);
     }
@@ -25540,7 +26766,28 @@ static inline void* mp_write_ptr_lv_subject_increment_dsc_t(PyObject *self_in)
     return (lv_subject_increment_dsc_t*)self->data;
 }
 
-#define mp_write_lv_subject_increment_dsc_t(struct_obj) (*((lv_subject_increment_dsc_t*)mp_write_ptr_lv_subject_increment_dsc_t(struct_obj)))
+static lv_subject_increment_dsc_t mp_write_scratch_lv_subject_increment_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_subject_increment_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_subject_increment_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_subject_increment_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_subject_increment_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_subject_increment_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_subject_increment_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_subject_increment_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_subject_increment_dsc_t, 0, sizeof(lv_subject_increment_dsc_t));
+    return &mp_write_scratch_lv_subject_increment_dsc_t;
+}
+
+#define mp_write_lv_subject_increment_dsc_t(struct_obj) (*((lv_subject_increment_dsc_t*)mp_write_value_ptr_lv_subject_increment_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_subject_increment_dsc_t(void *field)
 {
@@ -26371,12 +27618,18 @@ static int py_lv_obj_style_transition_dsc_t_setattro(PyObject *self, PyObject *n
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_obj_style_transition_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "time") == 0) { data->time = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "delay") == 0) { data->delay = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "selector") == 0) { data->selector = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "prop") == 0) { data->prop = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "path_cb") == 0) { data->path_cb = mp_lv_callback(value, NULL, "lv_obj_style_transition_dsc_t_path_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_obj_style_transition_dsc_t' object has no attribute '%s'", attr);
     }
@@ -26416,7 +27669,28 @@ static inline void* mp_write_ptr_lv_obj_style_transition_dsc_t(PyObject *self_in
     return (lv_obj_style_transition_dsc_t*)self->data;
 }
 
-#define mp_write_lv_obj_style_transition_dsc_t(struct_obj) (*((lv_obj_style_transition_dsc_t*)mp_write_ptr_lv_obj_style_transition_dsc_t(struct_obj)))
+static lv_obj_style_transition_dsc_t mp_write_scratch_lv_obj_style_transition_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_obj_style_transition_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_obj_style_transition_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_obj_style_transition_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_obj_style_transition_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_obj_style_transition_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_obj_style_transition_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_obj_style_transition_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_obj_style_transition_dsc_t, 0, sizeof(lv_obj_style_transition_dsc_t));
+    return &mp_write_scratch_lv_obj_style_transition_dsc_t;
+}
+
+#define mp_write_lv_obj_style_transition_dsc_t(struct_obj) (*((lv_obj_style_transition_dsc_t*)mp_write_value_ptr_lv_obj_style_transition_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_obj_style_transition_dsc_t(void *field)
 {
@@ -27348,11 +28622,17 @@ static int py_lv_image_decoder_args_t_setattro(PyObject *self, PyObject *name, P
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_decoder_args_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "stride_align") == 0) { data->stride_align = mp_obj_is_true(value); result = 0; }
     if (strcmp(attr, "premultiply") == 0) { data->premultiply = mp_obj_is_true(value); result = 0; }
     if (strcmp(attr, "no_cache") == 0) { data->no_cache = mp_obj_is_true(value); result = 0; }
     if (strcmp(attr, "use_indexed") == 0) { data->use_indexed = mp_obj_is_true(value); result = 0; }
     if (strcmp(attr, "flush_cache") == 0) { data->flush_cache = mp_obj_is_true(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_decoder_args_t' object has no attribute '%s'", attr);
     }
@@ -27392,7 +28672,28 @@ static inline void* mp_write_ptr_lv_image_decoder_args_t(PyObject *self_in)
     return (lv_image_decoder_args_t*)self->data;
 }
 
-#define mp_write_lv_image_decoder_args_t(struct_obj) (*((lv_image_decoder_args_t*)mp_write_ptr_lv_image_decoder_args_t(struct_obj)))
+static lv_image_decoder_args_t mp_write_scratch_lv_image_decoder_args_t;
+
+static inline void* mp_write_value_ptr_lv_image_decoder_args_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_decoder_args_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_decoder_args_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_decoder_args_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_decoder_args_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_decoder_args_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_decoder_args_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_decoder_args_t, 0, sizeof(lv_image_decoder_args_t));
+    return &mp_write_scratch_lv_image_decoder_args_t;
+}
+
+#define mp_write_lv_image_decoder_args_t(struct_obj) (*((lv_image_decoder_args_t*)mp_write_value_ptr_lv_image_decoder_args_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_decoder_args_t(void *field)
 {
@@ -27571,6 +28872,8 @@ static int py_lv_image_decoder_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_decoder_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "info_cb") == 0) { data->info_cb = mp_lv_callback(value, lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "open_cb") == 0) { data->open_cb = mp_lv_callback(value, lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "get_area_cb") == 0) { data->get_area_cb = mp_lv_callback(value, lv_image_decoder_t_get_area_cb_callback, "lv_image_decoder_t_get_area_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -27578,6 +28881,10 @@ static int py_lv_image_decoder_t_setattro(PyObject *self, PyObject *name, PyObje
     if (strcmp(attr, "custom_draw_cb") == 0) { data->custom_draw_cb = mp_lv_callback(value, NULL, "lv_image_decoder_t_custom_draw_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "name") == 0) { data->name = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_decoder_t' object has no attribute '%s'", attr);
     }
@@ -27617,7 +28924,28 @@ static inline void* mp_write_ptr_lv_image_decoder_t(PyObject *self_in)
     return (lv_image_decoder_t*)self->data;
 }
 
-#define mp_write_lv_image_decoder_t(struct_obj) (*((lv_image_decoder_t*)mp_write_ptr_lv_image_decoder_t(struct_obj)))
+static lv_image_decoder_t mp_write_scratch_lv_image_decoder_t;
+
+static inline void* mp_write_value_ptr_lv_image_decoder_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_decoder_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_decoder_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_decoder_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_decoder_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_decoder_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_decoder_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_decoder_t, 0, sizeof(lv_image_decoder_t));
+    return &mp_write_scratch_lv_image_decoder_t;
+}
+
+#define mp_write_lv_image_decoder_t(struct_obj) (*((lv_image_decoder_t*)mp_write_value_ptr_lv_image_decoder_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_decoder_t(void *field)
 {
@@ -27822,6 +29150,8 @@ static int py_lv_fs_drv_t_setattro(PyObject *self, PyObject *name, PyObject *val
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_fs_drv_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "letter") == 0) { data->letter = (char)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "cache_size") == 0) { data->cache_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "ready_cb") == 0) { data->ready_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_ready_cb_callback, "lv_fs_drv_t_ready_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
@@ -27836,6 +29166,10 @@ static int py_lv_fs_drv_t_setattro(PyObject *self, PyObject *name, PyObject *val
     if (strcmp(attr, "dir_read_cb") == 0) { data->dir_read_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_read_cb_callback, "lv_fs_drv_t_dir_read_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "dir_close_cb") == 0) { data->dir_close_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_close_cb_callback, "lv_fs_drv_t_dir_close_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_fs_drv_t' object has no attribute '%s'", attr);
     }
@@ -27875,7 +29209,28 @@ static inline void* mp_write_ptr_lv_fs_drv_t(PyObject *self_in)
     return (lv_fs_drv_t*)self->data;
 }
 
-#define mp_write_lv_fs_drv_t(struct_obj) (*((lv_fs_drv_t*)mp_write_ptr_lv_fs_drv_t(struct_obj)))
+static lv_fs_drv_t mp_write_scratch_lv_fs_drv_t;
+
+static inline void* mp_write_value_ptr_lv_fs_drv_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_fs_drv_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_fs_drv_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_fs_drv_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_fs_drv_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_fs_drv_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_fs_drv_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_fs_drv_t, 0, sizeof(lv_fs_drv_t));
+    return &mp_write_scratch_lv_fs_drv_t;
+}
+
+#define mp_write_lv_fs_drv_t(struct_obj) (*((lv_fs_drv_t*)mp_write_value_ptr_lv_fs_drv_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_fs_drv_t(void *field)
 {
@@ -27928,10 +29283,16 @@ static int py_lv_fs_file_cache_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_fs_file_cache_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "start") == 0) { data->start = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "end") == 0) { data->end = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "file_position") == 0) { data->file_position = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "buffer") == 0) { data->buffer = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_fs_file_cache_t' object has no attribute '%s'", attr);
     }
@@ -27971,7 +29332,28 @@ static inline void* mp_write_ptr_lv_fs_file_cache_t(PyObject *self_in)
     return (lv_fs_file_cache_t*)self->data;
 }
 
-#define mp_write_lv_fs_file_cache_t(struct_obj) (*((lv_fs_file_cache_t*)mp_write_ptr_lv_fs_file_cache_t(struct_obj)))
+static lv_fs_file_cache_t mp_write_scratch_lv_fs_file_cache_t;
+
+static inline void* mp_write_value_ptr_lv_fs_file_cache_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_fs_file_cache_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_fs_file_cache_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_fs_file_cache_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_fs_file_cache_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_fs_file_cache_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_fs_file_cache_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_fs_file_cache_t, 0, sizeof(lv_fs_file_cache_t));
+    return &mp_write_scratch_lv_fs_file_cache_t;
+}
+
+#define mp_write_lv_fs_file_cache_t(struct_obj) (*((lv_fs_file_cache_t*)mp_write_value_ptr_lv_fs_file_cache_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_fs_file_cache_t(void *field)
 {
@@ -28023,9 +29405,15 @@ static int py_lv_fs_file_t_setattro(PyObject *self, PyObject *name, PyObject *va
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_fs_file_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "file_d") == 0) { data->file_d = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "drv") == 0) { data->drv = (void*)mp_write_ptr_lv_fs_drv_t(value); result = 0; }
     if (strcmp(attr, "cache") == 0) { data->cache = (void*)mp_write_ptr_lv_fs_file_cache_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_fs_file_t' object has no attribute '%s'", attr);
     }
@@ -28065,7 +29453,28 @@ static inline void* mp_write_ptr_lv_fs_file_t(PyObject *self_in)
     return (lv_fs_file_t*)self->data;
 }
 
-#define mp_write_lv_fs_file_t(struct_obj) (*((lv_fs_file_t*)mp_write_ptr_lv_fs_file_t(struct_obj)))
+static lv_fs_file_t mp_write_scratch_lv_fs_file_t;
+
+static inline void* mp_write_value_ptr_lv_fs_file_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_fs_file_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_fs_file_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_fs_file_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_fs_file_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_fs_file_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_fs_file_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_fs_file_t, 0, sizeof(lv_fs_file_t));
+    return &mp_write_scratch_lv_fs_file_t;
+}
+
+#define mp_write_lv_fs_file_t(struct_obj) (*((lv_fs_file_t*)mp_write_value_ptr_lv_fs_file_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_fs_file_t(void *field)
 {
@@ -28238,6 +29647,8 @@ static int py_lv_cache_class_t_setattro(PyObject *self, PyObject *name, PyObject
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_cache_class_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "alloc_cb") == 0) { data->alloc_cb = mp_lv_callback(value, NULL, "lv_cache_class_t_alloc_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "init_cb") == 0) { data->init_cb = mp_lv_callback(value, NULL, "lv_cache_class_t_init_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "destroy_cb") == 0) { data->destroy_cb = mp_lv_callback(value, NULL, "lv_cache_class_t_destroy_cb", NULL, NULL, NULL, NULL); result = 0; }
@@ -28249,6 +29660,10 @@ static int py_lv_cache_class_t_setattro(PyObject *self, PyObject *name, PyObject
     if (strcmp(attr, "get_victim_cb") == 0) { data->get_victim_cb = mp_lv_callback(value, NULL, "lv_cache_class_t_get_victim_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "reserve_cond_cb") == 0) { data->reserve_cond_cb = mp_lv_callback(value, NULL, "lv_cache_class_t_reserve_cond_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "iter_create_cb") == 0) { data->iter_create_cb = mp_lv_callback(value, NULL, "lv_cache_class_t_iter_create_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_cache_class_t' object has no attribute '%s'", attr);
     }
@@ -28288,7 +29703,28 @@ static inline void* mp_write_ptr_lv_cache_class_t(PyObject *self_in)
     return (lv_cache_class_t*)self->data;
 }
 
-#define mp_write_lv_cache_class_t(struct_obj) (*((lv_cache_class_t*)mp_write_ptr_lv_cache_class_t(struct_obj)))
+static lv_cache_class_t mp_write_scratch_lv_cache_class_t;
+
+static inline void* mp_write_value_ptr_lv_cache_class_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_cache_class_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_cache_class_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_cache_class_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_cache_class_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_cache_class_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_cache_class_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_cache_class_t, 0, sizeof(lv_cache_class_t));
+    return &mp_write_scratch_lv_cache_class_t;
+}
+
+#define mp_write_lv_cache_class_t(struct_obj) (*((lv_cache_class_t*)mp_write_value_ptr_lv_cache_class_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_cache_class_t(void *field)
 {
@@ -28373,9 +29809,15 @@ static int py_lv_cache_ops_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_cache_ops_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "compare_cb") == 0) { data->compare_cb = mp_lv_callback(value, NULL, "lv_cache_ops_t_compare_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "create_cb") == 0) { data->create_cb = mp_lv_callback(value, NULL, "lv_cache_ops_t_create_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "free_cb") == 0) { data->free_cb = mp_lv_callback(value, NULL, "lv_cache_ops_t_free_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_cache_ops_t' object has no attribute '%s'", attr);
     }
@@ -28415,7 +29857,28 @@ static inline void* mp_write_ptr_lv_cache_ops_t(PyObject *self_in)
     return (lv_cache_ops_t*)self->data;
 }
 
-#define mp_write_lv_cache_ops_t(struct_obj) (*((lv_cache_ops_t*)mp_write_ptr_lv_cache_ops_t(struct_obj)))
+static lv_cache_ops_t mp_write_scratch_lv_cache_ops_t;
+
+static inline void* mp_write_value_ptr_lv_cache_ops_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_cache_ops_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_cache_ops_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_cache_ops_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_cache_ops_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_cache_ops_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_cache_ops_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_cache_ops_t, 0, sizeof(lv_cache_ops_t));
+    return &mp_write_scratch_lv_cache_ops_t;
+}
+
+#define mp_write_lv_cache_ops_t(struct_obj) (*((lv_cache_ops_t*)mp_write_value_ptr_lv_cache_ops_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_cache_ops_t(void *field)
 {
@@ -28471,6 +29934,8 @@ static int py_lv_cache_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_cache_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "clz") == 0) { data->clz = (void*)mp_write_ptr_lv_cache_class_t(value); result = 0; }
     if (strcmp(attr, "node_size") == 0) { data->node_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "max_size") == 0) { data->max_size = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -28478,6 +29943,10 @@ static int py_lv_cache_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "ops") == 0) { data->ops = mp_write_lv_cache_ops_t(value); result = 0; }
     if (strcmp(attr, "lock") == 0) { data->lock = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "name") == 0) { data->name = (void*)(char*)convert_from_str(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_cache_t' object has no attribute '%s'", attr);
     }
@@ -28517,7 +29986,28 @@ static inline void* mp_write_ptr_lv_cache_t(PyObject *self_in)
     return (lv_cache_t*)self->data;
 }
 
-#define mp_write_lv_cache_t(struct_obj) (*((lv_cache_t*)mp_write_ptr_lv_cache_t(struct_obj)))
+static lv_cache_t mp_write_scratch_lv_cache_t;
+
+static inline void* mp_write_value_ptr_lv_cache_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_cache_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_cache_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_cache_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_cache_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_cache_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_cache_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_cache_t, 0, sizeof(lv_cache_t));
+    return &mp_write_scratch_lv_cache_t;
+}
+
+#define mp_write_lv_cache_t(struct_obj) (*((lv_cache_t*)mp_write_value_ptr_lv_cache_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_cache_t(void *field)
 {
@@ -28570,10 +30060,16 @@ static int py_lv_cache_entry_t_setattro(PyObject *self, PyObject *name, PyObject
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_cache_entry_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "cache") == 0) { data->cache = (void*)mp_write_ptr_lv_cache_t(value); result = 0; }
     if (strcmp(attr, "ref_cnt") == 0) { data->ref_cnt = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "node_size") == 0) { data->node_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "flags") == 0) { data->flags = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_cache_entry_t' object has no attribute '%s'", attr);
     }
@@ -28613,7 +30109,28 @@ static inline void* mp_write_ptr_lv_cache_entry_t(PyObject *self_in)
     return (lv_cache_entry_t*)self->data;
 }
 
-#define mp_write_lv_cache_entry_t(struct_obj) (*((lv_cache_entry_t*)mp_write_ptr_lv_cache_entry_t(struct_obj)))
+static lv_cache_entry_t mp_write_scratch_lv_cache_entry_t;
+
+static inline void* mp_write_value_ptr_lv_cache_entry_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_cache_entry_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_cache_entry_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_cache_entry_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_cache_entry_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_cache_entry_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_cache_entry_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_cache_entry_t, 0, sizeof(lv_cache_entry_t));
+    return &mp_write_scratch_lv_cache_entry_t;
+}
+
+#define mp_write_lv_cache_entry_t(struct_obj) (*((lv_cache_entry_t*)mp_write_value_ptr_lv_cache_entry_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_cache_entry_t(void *field)
 {
@@ -28676,6 +30193,8 @@ static int py_lv_image_decoder_dsc_t_setattro(PyObject *self, PyObject *name, Py
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_decoder_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "decoder") == 0) { data->decoder = (void*)mp_write_ptr_lv_image_decoder_t(value); result = 0; }
     if (strcmp(attr, "args") == 0) { data->args = mp_write_lv_image_decoder_args_t(value); result = 0; }
     if (strcmp(attr, "src") == 0) { data->src = (void*)mp_to_ptr(value); result = 0; }
@@ -28690,6 +30209,10 @@ static int py_lv_image_decoder_dsc_t_setattro(PyObject *self, PyObject *name, Py
     if (strcmp(attr, "cache") == 0) { data->cache = (void*)mp_write_ptr_lv_cache_t(value); result = 0; }
     if (strcmp(attr, "cache_entry") == 0) { data->cache_entry = (void*)mp_write_ptr_lv_cache_entry_t(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_decoder_dsc_t' object has no attribute '%s'", attr);
     }
@@ -28729,7 +30252,28 @@ static inline void* mp_write_ptr_lv_image_decoder_dsc_t(PyObject *self_in)
     return (lv_image_decoder_dsc_t*)self->data;
 }
 
-#define mp_write_lv_image_decoder_dsc_t(struct_obj) (*((lv_image_decoder_dsc_t*)mp_write_ptr_lv_image_decoder_dsc_t(struct_obj)))
+static lv_image_decoder_dsc_t mp_write_scratch_lv_image_decoder_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_image_decoder_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_decoder_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_decoder_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_decoder_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_decoder_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_decoder_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_decoder_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_decoder_dsc_t, 0, sizeof(lv_image_decoder_dsc_t));
+    return &mp_write_scratch_lv_image_decoder_dsc_t;
+}
+
+#define mp_write_lv_image_decoder_dsc_t(struct_obj) (*((lv_image_decoder_dsc_t*)mp_write_value_ptr_lv_image_decoder_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_decoder_dsc_t(void *field)
 {
@@ -29016,7 +30560,13 @@ static int py_lv_cache_slot_size_t_setattro(PyObject *self, PyObject *name, PyOb
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_cache_slot_size_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "size") == 0) { data->size = (size_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_cache_slot_size_t' object has no attribute '%s'", attr);
     }
@@ -29056,7 +30606,28 @@ static inline void* mp_write_ptr_lv_cache_slot_size_t(PyObject *self_in)
     return (lv_cache_slot_size_t*)self->data;
 }
 
-#define mp_write_lv_cache_slot_size_t(struct_obj) (*((lv_cache_slot_size_t*)mp_write_ptr_lv_cache_slot_size_t(struct_obj)))
+static lv_cache_slot_size_t mp_write_scratch_lv_cache_slot_size_t;
+
+static inline void* mp_write_value_ptr_lv_cache_slot_size_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_cache_slot_size_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_cache_slot_size_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_cache_slot_size_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_cache_slot_size_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_cache_slot_size_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_cache_slot_size_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_cache_slot_size_t, 0, sizeof(lv_cache_slot_size_t));
+    return &mp_write_scratch_lv_cache_slot_size_t;
+}
+
+#define mp_write_lv_cache_slot_size_t(struct_obj) (*((lv_cache_slot_size_t*)mp_write_value_ptr_lv_cache_slot_size_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_cache_slot_size_t(void *field)
 {
@@ -29111,12 +30682,18 @@ static int py_lv_image_cache_data_t_setattro(PyObject *self, PyObject *name, PyO
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_image_cache_data_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "slot") == 0) { data->slot = mp_write_lv_cache_slot_size_t(value); result = 0; }
     if (strcmp(attr, "src") == 0) { data->src = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "src_type") == 0) { data->src_type = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "decoded") == 0) { data->decoded = (void*)mp_write_ptr_lv_draw_buf_t(value); result = 0; }
     if (strcmp(attr, "decoder") == 0) { data->decoder = (void*)mp_write_ptr_lv_image_decoder_t(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_image_cache_data_t' object has no attribute '%s'", attr);
     }
@@ -29156,7 +30733,28 @@ static inline void* mp_write_ptr_lv_image_cache_data_t(PyObject *self_in)
     return (lv_image_cache_data_t*)self->data;
 }
 
-#define mp_write_lv_image_cache_data_t(struct_obj) (*((lv_image_cache_data_t*)mp_write_ptr_lv_image_cache_data_t(struct_obj)))
+static lv_image_cache_data_t mp_write_scratch_lv_image_cache_data_t;
+
+static inline void* mp_write_value_ptr_lv_image_cache_data_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_cache_data_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_cache_data_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_cache_data_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_cache_data_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_cache_data_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_cache_data_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_cache_data_t, 0, sizeof(lv_image_cache_data_t));
+    return &mp_write_scratch_lv_image_cache_data_t;
+}
+
+#define mp_write_lv_image_cache_data_t(struct_obj) (*((lv_image_cache_data_t*)mp_write_value_ptr_lv_image_cache_data_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_image_cache_data_t(void *field)
 {
@@ -30340,7 +31938,12 @@ static int py_lv_iter_t_setattro(PyObject *self, PyObject *name, PyObject *value
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    
     (void)value;
+    if (PyErr_Occurred()) {
+        
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_iter_t' object has no attribute '%s'", attr);
     }
@@ -35189,9 +36792,15 @@ static int py_lv_calendar_date_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_calendar_date_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "year") == 0) { data->year = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "month") == 0) { data->month = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "day") == 0) { data->day = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_calendar_date_t' object has no attribute '%s'", attr);
     }
@@ -35231,7 +36840,28 @@ static inline void* mp_write_ptr_lv_calendar_date_t(PyObject *self_in)
     return (lv_calendar_date_t*)self->data;
 }
 
-#define mp_write_lv_calendar_date_t(struct_obj) (*((lv_calendar_date_t*)mp_write_ptr_lv_calendar_date_t(struct_obj)))
+static lv_calendar_date_t mp_write_scratch_lv_calendar_date_t;
+
+static inline void* mp_write_value_ptr_lv_calendar_date_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_calendar_date_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_calendar_date_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_calendar_date_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_calendar_date_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_calendar_date_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_calendar_date_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_calendar_date_t, 0, sizeof(lv_calendar_date_t));
+    return &mp_write_scratch_lv_calendar_date_t;
+}
+
+#define mp_write_lv_calendar_date_t(struct_obj) (*((lv_calendar_date_t*)mp_write_value_ptr_lv_calendar_date_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_calendar_date_t(void *field)
 {
@@ -36620,6 +38250,8 @@ static int py_lv_chart_series_t_setattro(PyObject *self, PyObject *name, PyObjec
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_chart_series_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "x_points") == 0) { data->x_points = (void*)mp_array_to_i32ptr(value); result = 0; }
     if (strcmp(attr, "y_points") == 0) { data->y_points = (void*)mp_array_to_i32ptr(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
@@ -36629,6 +38261,10 @@ static int py_lv_chart_series_t_setattro(PyObject *self, PyObject *name, PyObjec
     if (strcmp(attr, "y_ext_buf_assigned") == 0) { data->y_ext_buf_assigned = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "x_axis_sec") == 0) { data->x_axis_sec = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "y_axis_sec") == 0) { data->y_axis_sec = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_chart_series_t' object has no attribute '%s'", attr);
     }
@@ -36668,7 +38304,28 @@ static inline void* mp_write_ptr_lv_chart_series_t(PyObject *self_in)
     return (lv_chart_series_t*)self->data;
 }
 
-#define mp_write_lv_chart_series_t(struct_obj) (*((lv_chart_series_t*)mp_write_ptr_lv_chart_series_t(struct_obj)))
+static lv_chart_series_t mp_write_scratch_lv_chart_series_t;
+
+static inline void* mp_write_value_ptr_lv_chart_series_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_chart_series_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_chart_series_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_chart_series_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_chart_series_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_chart_series_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_chart_series_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_chart_series_t, 0, sizeof(lv_chart_series_t));
+    return &mp_write_scratch_lv_chart_series_t;
+}
+
+#define mp_write_lv_chart_series_t(struct_obj) (*((lv_chart_series_t*)mp_write_value_ptr_lv_chart_series_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_chart_series_t(void *field)
 {
@@ -37031,12 +38688,18 @@ static int py_lv_chart_cursor_t_setattro(PyObject *self, PyObject *name, PyObjec
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_chart_cursor_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "pos") == 0) { data->pos = mp_write_lv_point_t(value); result = 0; }
     if (strcmp(attr, "point_id") == 0) { data->point_id = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "ser") == 0) { data->ser = (void*)mp_write_ptr_lv_chart_series_t(value); result = 0; }
     if (strcmp(attr, "dir") == 0) { data->dir = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "pos_set") == 0) { data->pos_set = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_chart_cursor_t' object has no attribute '%s'", attr);
     }
@@ -37076,7 +38739,28 @@ static inline void* mp_write_ptr_lv_chart_cursor_t(PyObject *self_in)
     return (lv_chart_cursor_t*)self->data;
 }
 
-#define mp_write_lv_chart_cursor_t(struct_obj) (*((lv_chart_cursor_t*)mp_write_ptr_lv_chart_cursor_t(struct_obj)))
+static lv_chart_cursor_t mp_write_scratch_lv_chart_cursor_t;
+
+static inline void* mp_write_value_ptr_lv_chart_cursor_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_chart_cursor_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_chart_cursor_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_chart_cursor_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_chart_cursor_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_chart_cursor_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_chart_cursor_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_chart_cursor_t, 0, sizeof(lv_chart_cursor_t));
+    return &mp_write_scratch_lv_chart_cursor_t;
+}
+
+#define mp_write_lv_chart_cursor_t(struct_obj) (*((lv_chart_cursor_t*)mp_write_value_ptr_lv_chart_cursor_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_chart_cursor_t(void *field)
 {
@@ -42961,6 +44645,8 @@ static int py_lv_scale_section_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_scale_section_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "main_style") == 0) { data->main_style = (void*)mp_write_ptr_lv_style_t(value); result = 0; }
     if (strcmp(attr, "indicator_style") == 0) { data->indicator_style = (void*)mp_write_ptr_lv_style_t(value); result = 0; }
     if (strcmp(attr, "items_style") == 0) { data->items_style = (void*)mp_write_ptr_lv_style_t(value); result = 0; }
@@ -42974,6 +44660,10 @@ static int py_lv_scale_section_t_setattro(PyObject *self, PyObject *name, PyObje
     if (strcmp(attr, "last_tick_in_section") == 0) { data->last_tick_in_section = mp_write_lv_point_t(value); result = 0; }
     if (strcmp(attr, "first_tick_idx_is_major") == 0) { data->first_tick_idx_is_major = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "last_tick_idx_is_major") == 0) { data->last_tick_idx_is_major = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_scale_section_t' object has no attribute '%s'", attr);
     }
@@ -43013,7 +44703,28 @@ static inline void* mp_write_ptr_lv_scale_section_t(PyObject *self_in)
     return (lv_scale_section_t*)self->data;
 }
 
-#define mp_write_lv_scale_section_t(struct_obj) (*((lv_scale_section_t*)mp_write_ptr_lv_scale_section_t(struct_obj)))
+static lv_scale_section_t mp_write_scratch_lv_scale_section_t;
+
+static inline void* mp_write_value_ptr_lv_scale_section_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_scale_section_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_scale_section_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_scale_section_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_scale_section_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_scale_section_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_scale_section_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_scale_section_t, 0, sizeof(lv_scale_section_t));
+    return &mp_write_scratch_lv_scale_section_t;
+}
+
+#define mp_write_lv_scale_section_t(struct_obj) (*((lv_scale_section_t*)mp_write_value_ptr_lv_scale_section_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_scale_section_t(void *field)
 {
@@ -44318,11 +46029,17 @@ static int py_lv_span_t_setattro(PyObject *self, PyObject *name, PyObject *value
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_span_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "txt") == 0) { data->txt = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "style") == 0) { data->style = mp_write_lv_style_t(value); result = 0; }
     if (strcmp(attr, "static_flag") == 0) { data->static_flag = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "trailing_pos") == 0) { data->trailing_pos = mp_write_lv_point_t(value); result = 0; }
     if (strcmp(attr, "trailing_height") == 0) { data->trailing_height = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_span_t' object has no attribute '%s'", attr);
     }
@@ -44362,7 +46079,28 @@ static inline void* mp_write_ptr_lv_span_t(PyObject *self_in)
     return (lv_span_t*)self->data;
 }
 
-#define mp_write_lv_span_t(struct_obj) (*((lv_span_t*)mp_write_ptr_lv_span_t(struct_obj)))
+static lv_span_t mp_write_scratch_lv_span_t;
+
+static inline void* mp_write_value_ptr_lv_span_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_span_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_span_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_span_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_span_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_span_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_span_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_span_t, 0, sizeof(lv_span_t));
+    return &mp_write_scratch_lv_span_t;
+}
+
+#define mp_write_lv_span_t(struct_obj) (*((lv_span_t*)mp_write_value_ptr_lv_span_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_span_t(void *field)
 {
@@ -45012,9 +46750,15 @@ static int py_lv_span_coords_t_setattro(PyObject *self, PyObject *name, PyObject
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_span_coords_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "heading") == 0) { data->heading = mp_write_lv_area_t(value); result = 0; }
     if (strcmp(attr, "middle") == 0) { data->middle = mp_write_lv_area_t(value); result = 0; }
     if (strcmp(attr, "trailing") == 0) { data->trailing = mp_write_lv_area_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_span_coords_t' object has no attribute '%s'", attr);
     }
@@ -45054,7 +46798,28 @@ static inline void* mp_write_ptr_lv_span_coords_t(PyObject *self_in)
     return (lv_span_coords_t*)self->data;
 }
 
-#define mp_write_lv_span_coords_t(struct_obj) (*((lv_span_coords_t*)mp_write_ptr_lv_span_coords_t(struct_obj)))
+static lv_span_coords_t mp_write_scratch_lv_span_coords_t;
+
+static inline void* mp_write_value_ptr_lv_span_coords_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_span_coords_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_span_coords_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_span_coords_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_span_coords_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_span_coords_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_span_coords_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_span_coords_t, 0, sizeof(lv_span_coords_t));
+    return &mp_write_scratch_lv_span_coords_t;
+}
+
+#define mp_write_lv_span_coords_t(struct_obj) (*((lv_span_coords_t*)mp_write_value_ptr_lv_span_coords_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_span_coords_t(void *field)
 {
@@ -49775,10 +51540,16 @@ static int py_lv_tree_class_t_setattro(PyObject *self, PyObject *name, PyObject 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_tree_class_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base_class") == 0) { data->base_class = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "instance_size") == 0) { data->instance_size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "constructor_cb") == 0) { data->constructor_cb = mp_lv_callback(value, NULL, "lv_tree_class_t_constructor_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "destructor_cb") == 0) { data->destructor_cb = mp_lv_callback(value, NULL, "lv_tree_class_t_destructor_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_tree_class_t' object has no attribute '%s'", attr);
     }
@@ -49818,7 +51589,28 @@ static inline void* mp_write_ptr_lv_tree_class_t(PyObject *self_in)
     return (lv_tree_class_t*)self->data;
 }
 
-#define mp_write_lv_tree_class_t(struct_obj) (*((lv_tree_class_t*)mp_write_ptr_lv_tree_class_t(struct_obj)))
+static lv_tree_class_t mp_write_scratch_lv_tree_class_t;
+
+static inline void* mp_write_value_ptr_lv_tree_class_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_tree_class_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_tree_class_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_tree_class_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_tree_class_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_tree_class_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_tree_class_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_tree_class_t, 0, sizeof(lv_tree_class_t));
+    return &mp_write_scratch_lv_tree_class_t;
+}
+
+#define mp_write_lv_tree_class_t(struct_obj) (*((lv_tree_class_t*)mp_write_value_ptr_lv_tree_class_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_tree_class_t(void *field)
 {
@@ -49915,10 +51707,16 @@ static int py_lv_font_class_t_setattro(PyObject *self, PyObject *name, PyObject 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_font_class_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "create_cb") == 0) { data->create_cb = (void*)mp_lv_callback(value, NULL, "lv_font_class_t_create_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "delete_cb") == 0) { data->delete_cb = (void*)mp_lv_callback(value, NULL, "lv_font_class_t_delete_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "dup_src_cb") == 0) { data->dup_src_cb = (void*)mp_lv_callback(value, NULL, "lv_font_class_t_dup_src_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "free_src_cb") == 0) { data->free_src_cb = (void*)mp_lv_callback(value, NULL, "lv_font_class_t_free_src_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_font_class_t' object has no attribute '%s'", attr);
     }
@@ -49958,7 +51756,28 @@ static inline void* mp_write_ptr_lv_font_class_t(PyObject *self_in)
     return (lv_font_class_t*)self->data;
 }
 
-#define mp_write_lv_font_class_t(struct_obj) (*((lv_font_class_t*)mp_write_ptr_lv_font_class_t(struct_obj)))
+static lv_font_class_t mp_write_scratch_lv_font_class_t;
+
+static inline void* mp_write_value_ptr_lv_font_class_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_font_class_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_font_class_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_font_class_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_font_class_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_font_class_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_font_class_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_font_class_t, 0, sizeof(lv_font_class_t));
+    return &mp_write_scratch_lv_font_class_t;
+}
+
+#define mp_write_lv_font_class_t(struct_obj) (*((lv_font_class_t*)mp_write_value_ptr_lv_font_class_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_font_class_t(void *field)
 {
@@ -50010,9 +51829,15 @@ static int py_lv_color16_t_setattro(PyObject *self, PyObject *name, PyObject *va
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_color16_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "blue") == 0) { data->blue = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "green") == 0) { data->green = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "red") == 0) { data->red = (uint16_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_color16_t' object has no attribute '%s'", attr);
     }
@@ -50052,7 +51877,28 @@ static inline void* mp_write_ptr_lv_color16_t(PyObject *self_in)
     return (lv_color16_t*)self->data;
 }
 
-#define mp_write_lv_color16_t(struct_obj) (*((lv_color16_t*)mp_write_ptr_lv_color16_t(struct_obj)))
+static lv_color16_t mp_write_scratch_lv_color16_t;
+
+static inline void* mp_write_value_ptr_lv_color16_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color16_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color16_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color16_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color16_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color16_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color16_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color16_t, 0, sizeof(lv_color16_t));
+    return &mp_write_scratch_lv_color16_t;
+}
+
+#define mp_write_lv_color16_t(struct_obj) (*((lv_color16_t*)mp_write_value_ptr_lv_color16_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_color16_t(void *field)
 {
@@ -50109,6 +51955,8 @@ static int py_lv_mem_monitor_t_setattro(PyObject *self, PyObject *name, PyObject
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_mem_monitor_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "total_size") == 0) { data->total_size = (size_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "free_cnt") == 0) { data->free_cnt = (size_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "free_size") == 0) { data->free_size = (size_t)mp_obj_get_int(value); result = 0; }
@@ -50117,6 +51965,10 @@ static int py_lv_mem_monitor_t_setattro(PyObject *self, PyObject *name, PyObject
     if (strcmp(attr, "max_used") == 0) { data->max_used = (size_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "used_pct") == 0) { data->used_pct = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "frag_pct") == 0) { data->frag_pct = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_mem_monitor_t' object has no attribute '%s'", attr);
     }
@@ -50156,7 +52008,28 @@ static inline void* mp_write_ptr_lv_mem_monitor_t(PyObject *self_in)
     return (lv_mem_monitor_t*)self->data;
 }
 
-#define mp_write_lv_mem_monitor_t(struct_obj) (*((lv_mem_monitor_t*)mp_write_ptr_lv_mem_monitor_t(struct_obj)))
+static lv_mem_monitor_t mp_write_scratch_lv_mem_monitor_t;
+
+static inline void* mp_write_value_ptr_lv_mem_monitor_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_mem_monitor_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_mem_monitor_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_mem_monitor_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_mem_monitor_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_mem_monitor_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_mem_monitor_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_mem_monitor_t, 0, sizeof(lv_mem_monitor_t));
+    return &mp_write_scratch_lv_mem_monitor_t;
+}
+
+#define mp_write_lv_mem_monitor_t(struct_obj) (*((lv_mem_monitor_t*)mp_write_value_ptr_lv_mem_monitor_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_mem_monitor_t(void *field)
 {
@@ -50226,11 +52099,17 @@ static int py_lv_rb_node_t_setattro(PyObject *self, PyObject *name, PyObject *va
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_rb_node_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "parent") == 0) { data->parent = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "left") == 0) { data->left = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "right") == 0) { data->right = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "data") == 0) { data->data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_rb_node_t' object has no attribute '%s'", attr);
     }
@@ -50270,7 +52149,28 @@ static inline void* mp_write_ptr_lv_rb_node_t(PyObject *self_in)
     return (lv_rb_node_t*)self->data;
 }
 
-#define mp_write_lv_rb_node_t(struct_obj) (*((lv_rb_node_t*)mp_write_ptr_lv_rb_node_t(struct_obj)))
+static lv_rb_node_t mp_write_scratch_lv_rb_node_t;
+
+static inline void* mp_write_value_ptr_lv_rb_node_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_rb_node_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_rb_node_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_rb_node_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_rb_node_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_rb_node_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_rb_node_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_rb_node_t, 0, sizeof(lv_rb_node_t));
+    return &mp_write_scratch_lv_rb_node_t;
+}
+
+#define mp_write_lv_rb_node_t(struct_obj) (*((lv_rb_node_t*)mp_write_value_ptr_lv_rb_node_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_rb_node_t(void *field)
 {
@@ -50333,9 +52233,15 @@ static int py_lv_rb_t_setattro(PyObject *self, PyObject *name, PyObject *value)
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_rb_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "root") == 0) { data->root = (void*)mp_write_ptr_lv_rb_node_t(value); result = 0; }
     if (strcmp(attr, "compare") == 0) { data->compare = mp_lv_callback(value, NULL, "lv_rb_t_compare", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "size") == 0) { data->size = (size_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_rb_t' object has no attribute '%s'", attr);
     }
@@ -50375,7 +52281,28 @@ static inline void* mp_write_ptr_lv_rb_t(PyObject *self_in)
     return (lv_rb_t*)self->data;
 }
 
-#define mp_write_lv_rb_t(struct_obj) (*((lv_rb_t*)mp_write_ptr_lv_rb_t(struct_obj)))
+static lv_rb_t mp_write_scratch_lv_rb_t;
+
+static inline void* mp_write_value_ptr_lv_rb_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_rb_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_rb_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_rb_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_rb_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_rb_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_rb_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_rb_t, 0, sizeof(lv_rb_t));
+    return &mp_write_scratch_lv_rb_t;
+}
+
+#define mp_write_lv_rb_t(struct_obj) (*((lv_rb_t*)mp_write_value_ptr_lv_rb_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_rb_t(void *field)
 {
@@ -50425,7 +52352,12 @@ static int py_lv_circle_buf_t_setattro(PyObject *self, PyObject *name, PyObject 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    
     (void)value;
+    if (PyErr_Occurred()) {
+        
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_circle_buf_t' object has no attribute '%s'", attr);
     }
@@ -50519,11 +52451,17 @@ static int py_lv_tree_node_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_tree_node_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "parent") == 0) { data->parent = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "children") == 0) { data->children = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "child_cnt") == 0) { data->child_cnt = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "child_cap") == 0) { data->child_cap = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "class_p") == 0) { data->class_p = (void*)mp_write_ptr_lv_tree_class_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_tree_node_t' object has no attribute '%s'", attr);
     }
@@ -50563,7 +52501,28 @@ static inline void* mp_write_ptr_lv_tree_node_t(PyObject *self_in)
     return (lv_tree_node_t*)self->data;
 }
 
-#define mp_write_lv_tree_node_t(struct_obj) (*((lv_tree_node_t*)mp_write_ptr_lv_tree_node_t(struct_obj)))
+static lv_tree_node_t mp_write_scratch_lv_tree_node_t;
+
+static inline void* mp_write_value_ptr_lv_tree_node_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_tree_node_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_tree_node_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_tree_node_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_tree_node_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_tree_node_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_tree_node_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_tree_node_t, 0, sizeof(lv_tree_node_t));
+    return &mp_write_scratch_lv_tree_node_t;
+}
+
+#define mp_write_lv_tree_node_t(struct_obj) (*((lv_tree_node_t*)mp_write_value_ptr_lv_tree_node_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_tree_node_t(void *field)
 {
@@ -50624,6 +52583,8 @@ static int py_lv_font_glyph_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_font_glyph_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "resolved_font") == 0) { data->resolved_font = (void*)mp_write_ptr_lv_font_t(value); result = 0; }
     if (strcmp(attr, "adv_w") == 0) { data->adv_w = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "box_w") == 0) { data->box_w = (uint16_t)mp_obj_get_int(value); result = 0; }
@@ -50636,6 +52597,10 @@ static int py_lv_font_glyph_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     if (strcmp(attr, "req_raw_bitmap") == 0) { data->req_raw_bitmap = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "outline_stroke_width") == 0) { data->outline_stroke_width = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "entry") == 0) { data->entry = (void*)mp_write_ptr_lv_cache_entry_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_font_glyph_dsc_t' object has no attribute '%s'", attr);
     }
@@ -50675,7 +52640,28 @@ static inline void* mp_write_ptr_lv_font_glyph_dsc_t(PyObject *self_in)
     return (lv_font_glyph_dsc_t*)self->data;
 }
 
-#define mp_write_lv_font_glyph_dsc_t(struct_obj) (*((lv_font_glyph_dsc_t*)mp_write_ptr_lv_font_glyph_dsc_t(struct_obj)))
+static lv_font_glyph_dsc_t mp_write_scratch_lv_font_glyph_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_font_glyph_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_font_glyph_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_font_glyph_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_font_glyph_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_font_glyph_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_font_glyph_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_font_glyph_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_font_glyph_dsc_t, 0, sizeof(lv_font_glyph_dsc_t));
+    return &mp_write_scratch_lv_font_glyph_dsc_t;
+}
+
+#define mp_write_lv_font_glyph_dsc_t(struct_obj) (*((lv_font_glyph_dsc_t*)mp_write_value_ptr_lv_font_glyph_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_font_glyph_dsc_t(void *field)
 {
@@ -50730,12 +52716,18 @@ static int py_lv_font_info_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_font_info_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "name") == 0) { data->name = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "class_p") == 0) { data->class_p = (void*)mp_write_ptr_lv_font_class_t(value); result = 0; }
     if (strcmp(attr, "size") == 0) { data->size = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "render_mode") == 0) { data->render_mode = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "style") == 0) { data->style = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "kerning") == 0) { data->kerning = (int)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_font_info_t' object has no attribute '%s'", attr);
     }
@@ -50775,7 +52767,28 @@ static inline void* mp_write_ptr_lv_font_info_t(PyObject *self_in)
     return (lv_font_info_t*)self->data;
 }
 
-#define mp_write_lv_font_info_t(struct_obj) (*((lv_font_info_t*)mp_write_ptr_lv_font_info_t(struct_obj)))
+static lv_font_info_t mp_write_scratch_lv_font_info_t;
+
+static inline void* mp_write_value_ptr_lv_font_info_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_font_info_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_font_info_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_font_info_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_font_info_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_font_info_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_font_info_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_font_info_t, 0, sizeof(lv_font_info_t));
+    return &mp_write_scratch_lv_font_info_t;
+}
+
+#define mp_write_lv_font_info_t(struct_obj) (*((lv_font_info_t*)mp_write_value_ptr_lv_font_info_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_font_info_t(void *field)
 {
@@ -50848,8 +52861,14 @@ static int py_lv_layout_callbacks_t_setattro(PyObject *self, PyObject *name, PyO
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_layout_callbacks_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "layout_update_cb") == 0) { data->layout_update_cb = mp_lv_callback(value, NULL, "lv_layout_callbacks_t_layout_update_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "get_min_size_cb") == 0) { data->get_min_size_cb = mp_lv_callback(value, NULL, "lv_layout_callbacks_t_get_min_size_cb", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_layout_callbacks_t' object has no attribute '%s'", attr);
     }
@@ -50889,7 +52908,28 @@ static inline void* mp_write_ptr_lv_layout_callbacks_t(PyObject *self_in)
     return (lv_layout_callbacks_t*)self->data;
 }
 
-#define mp_write_lv_layout_callbacks_t(struct_obj) (*((lv_layout_callbacks_t*)mp_write_ptr_lv_layout_callbacks_t(struct_obj)))
+static lv_layout_callbacks_t mp_write_scratch_lv_layout_callbacks_t;
+
+static inline void* mp_write_value_ptr_lv_layout_callbacks_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_layout_callbacks_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_layout_callbacks_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_layout_callbacks_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_layout_callbacks_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_layout_callbacks_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_layout_callbacks_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_layout_callbacks_t, 0, sizeof(lv_layout_callbacks_t));
+    return &mp_write_scratch_lv_layout_callbacks_t;
+}
+
+#define mp_write_lv_layout_callbacks_t(struct_obj) (*((lv_layout_callbacks_t*)mp_write_value_ptr_lv_layout_callbacks_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_layout_callbacks_t(void *field)
 {
@@ -50939,7 +52979,13 @@ static int py_lv_fs_path_ex_t_setattro(PyObject *self, PyObject *name, PyObject 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_fs_path_ex_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "path") == 0) { memcpy((void*)&data->path, mp_to_ptr(value), sizeof(char)*64); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_fs_path_ex_t' object has no attribute '%s'", attr);
     }
@@ -50979,7 +53025,28 @@ static inline void* mp_write_ptr_lv_fs_path_ex_t(PyObject *self_in)
     return (lv_fs_path_ex_t*)self->data;
 }
 
-#define mp_write_lv_fs_path_ex_t(struct_obj) (*((lv_fs_path_ex_t*)mp_write_ptr_lv_fs_path_ex_t(struct_obj)))
+static lv_fs_path_ex_t mp_write_scratch_lv_fs_path_ex_t;
+
+static inline void* mp_write_value_ptr_lv_fs_path_ex_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_fs_path_ex_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_fs_path_ex_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_fs_path_ex_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_fs_path_ex_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_fs_path_ex_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_fs_path_ex_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_fs_path_ex_t, 0, sizeof(lv_fs_path_ex_t));
+    return &mp_write_scratch_lv_fs_path_ex_t;
+}
+
+#define mp_write_lv_fs_path_ex_t(struct_obj) (*((lv_fs_path_ex_t*)mp_write_value_ptr_lv_fs_path_ex_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_fs_path_ex_t(void *field)
 {
@@ -51030,8 +53097,14 @@ static int py_lv_fs_dir_t_setattro(PyObject *self, PyObject *name, PyObject *val
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_fs_dir_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dir_d") == 0) { data->dir_d = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "drv") == 0) { data->drv = (void*)mp_write_ptr_lv_fs_drv_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_fs_dir_t' object has no attribute '%s'", attr);
     }
@@ -51071,7 +53144,28 @@ static inline void* mp_write_ptr_lv_fs_dir_t(PyObject *self_in)
     return (lv_fs_dir_t*)self->data;
 }
 
-#define mp_write_lv_fs_dir_t(struct_obj) (*((lv_fs_dir_t*)mp_write_ptr_lv_fs_dir_t(struct_obj)))
+static lv_fs_dir_t mp_write_scratch_lv_fs_dir_t;
+
+static inline void* mp_write_value_ptr_lv_fs_dir_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_fs_dir_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_fs_dir_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_fs_dir_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_fs_dir_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_fs_dir_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_fs_dir_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_fs_dir_t, 0, sizeof(lv_fs_dir_t));
+    return &mp_write_scratch_lv_fs_dir_t;
+}
+
+#define mp_write_lv_fs_dir_t(struct_obj) (*((lv_fs_dir_t*)mp_write_value_ptr_lv_fs_dir_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_fs_dir_t(void *field)
 {
@@ -51125,11 +53219,17 @@ static int py_lv_draw_fill_dsc_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_fill_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "radius") == 0) { data->radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "grad") == 0) { data->grad = mp_write_lv_grad_dsc_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_fill_dsc_t' object has no attribute '%s'", attr);
     }
@@ -51169,7 +53269,28 @@ static inline void* mp_write_ptr_lv_draw_fill_dsc_t(PyObject *self_in)
     return (lv_draw_fill_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_fill_dsc_t(struct_obj) (*((lv_draw_fill_dsc_t*)mp_write_ptr_lv_draw_fill_dsc_t(struct_obj)))
+static lv_draw_fill_dsc_t mp_write_scratch_lv_draw_fill_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_fill_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_fill_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_fill_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_fill_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_fill_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_fill_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_fill_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_fill_dsc_t, 0, sizeof(lv_draw_fill_dsc_t));
+    return &mp_write_scratch_lv_draw_fill_dsc_t;
+}
+
+#define mp_write_lv_draw_fill_dsc_t(struct_obj) (*((lv_draw_fill_dsc_t*)mp_write_value_ptr_lv_draw_fill_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_fill_dsc_t(void *field)
 {
@@ -51224,12 +53345,18 @@ static int py_lv_draw_border_dsc_t_setattro(PyObject *self, PyObject *name, PyOb
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_border_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "radius") == 0) { data->radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "width") == 0) { data->width = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "side") == 0) { data->side = (int)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_border_dsc_t' object has no attribute '%s'", attr);
     }
@@ -51269,7 +53396,28 @@ static inline void* mp_write_ptr_lv_draw_border_dsc_t(PyObject *self_in)
     return (lv_draw_border_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_border_dsc_t(struct_obj) (*((lv_draw_border_dsc_t*)mp_write_ptr_lv_draw_border_dsc_t(struct_obj)))
+static lv_draw_border_dsc_t mp_write_scratch_lv_draw_border_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_border_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_border_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_border_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_border_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_border_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_border_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_border_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_border_dsc_t, 0, sizeof(lv_draw_border_dsc_t));
+    return &mp_write_scratch_lv_draw_border_dsc_t;
+}
+
+#define mp_write_lv_draw_border_dsc_t(struct_obj) (*((lv_draw_border_dsc_t*)mp_write_value_ptr_lv_draw_border_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_border_dsc_t(void *field)
 {
@@ -51327,6 +53475,8 @@ static int py_lv_draw_box_shadow_dsc_t_setattro(PyObject *self, PyObject *name, 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_box_shadow_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "radius") == 0) { data->radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
@@ -51336,6 +53486,10 @@ static int py_lv_draw_box_shadow_dsc_t_setattro(PyObject *self, PyObject *name, 
     if (strcmp(attr, "ofs_y") == 0) { data->ofs_y = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "bg_cover") == 0) { data->bg_cover = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_box_shadow_dsc_t' object has no attribute '%s'", attr);
     }
@@ -51375,7 +53529,28 @@ static inline void* mp_write_ptr_lv_draw_box_shadow_dsc_t(PyObject *self_in)
     return (lv_draw_box_shadow_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_box_shadow_dsc_t(struct_obj) (*((lv_draw_box_shadow_dsc_t*)mp_write_ptr_lv_draw_box_shadow_dsc_t(struct_obj)))
+static lv_draw_box_shadow_dsc_t mp_write_scratch_lv_draw_box_shadow_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_box_shadow_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_box_shadow_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_box_shadow_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_box_shadow_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_box_shadow_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_box_shadow_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_box_shadow_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_box_shadow_dsc_t, 0, sizeof(lv_draw_box_shadow_dsc_t));
+    return &mp_write_scratch_lv_draw_box_shadow_dsc_t;
+}
+
+#define mp_write_lv_draw_box_shadow_dsc_t(struct_obj) (*((lv_draw_box_shadow_dsc_t*)mp_write_value_ptr_lv_draw_box_shadow_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_box_shadow_dsc_t(void *field)
 {
@@ -51440,6 +53615,8 @@ static int py_lv_draw_letter_dsc_t_setattro(PyObject *self, PyObject *name, PyOb
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_letter_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "unicode") == 0) { data->unicode = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "font") == 0) { data->font = (void*)mp_write_ptr_lv_font_t(value); result = 0; }
@@ -51456,6 +53633,10 @@ static int py_lv_draw_letter_dsc_t_setattro(PyObject *self, PyObject *name, PyOb
     if (strcmp(attr, "outline_stroke_opa") == 0) { data->outline_stroke_opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "outline_stroke_width") == 0) { data->outline_stroke_width = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "outline_stroke_color") == 0) { data->outline_stroke_color = mp_write_lv_color_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_letter_dsc_t' object has no attribute '%s'", attr);
     }
@@ -51495,7 +53676,28 @@ static inline void* mp_write_ptr_lv_draw_letter_dsc_t(PyObject *self_in)
     return (lv_draw_letter_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_letter_dsc_t(struct_obj) (*((lv_draw_letter_dsc_t*)mp_write_ptr_lv_draw_letter_dsc_t(struct_obj)))
+static lv_draw_letter_dsc_t mp_write_scratch_lv_draw_letter_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_letter_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_letter_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_letter_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_letter_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_letter_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_letter_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_letter_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_letter_dsc_t, 0, sizeof(lv_draw_letter_dsc_t));
+    return &mp_write_scratch_lv_draw_letter_dsc_t;
+}
+
+#define mp_write_lv_draw_letter_dsc_t(struct_obj) (*((lv_draw_letter_dsc_t*)mp_write_value_ptr_lv_draw_letter_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_letter_dsc_t(void *field)
 {
@@ -51557,6 +53759,8 @@ static int py_lv_draw_glyph_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_glyph_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "glyph_data") == 0) { data->glyph_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "format") == 0) { data->format = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "letter_coords") == 0) { data->letter_coords = (void*)mp_write_ptr_lv_area_t(value); result = 0; }
@@ -51570,6 +53774,10 @@ static int py_lv_draw_glyph_dsc_t_setattro(PyObject *self, PyObject *name, PyObj
     if (strcmp(attr, "rotation") == 0) { data->rotation = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "pivot") == 0) { data->pivot = mp_write_lv_point_t(value); result = 0; }
     if (strcmp(attr, "_draw_buf") == 0) { data->_draw_buf = (void*)mp_write_ptr_lv_draw_buf_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_glyph_dsc_t' object has no attribute '%s'", attr);
     }
@@ -51609,7 +53817,28 @@ static inline void* mp_write_ptr_lv_draw_glyph_dsc_t(PyObject *self_in)
     return (lv_draw_glyph_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_glyph_dsc_t(struct_obj) (*((lv_draw_glyph_dsc_t*)mp_write_ptr_lv_draw_glyph_dsc_t(struct_obj)))
+static lv_draw_glyph_dsc_t mp_write_scratch_lv_draw_glyph_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_glyph_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_glyph_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_glyph_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_glyph_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_glyph_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_glyph_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_glyph_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_glyph_dsc_t, 0, sizeof(lv_draw_glyph_dsc_t));
+    return &mp_write_scratch_lv_draw_glyph_dsc_t;
+}
+
+#define mp_write_lv_draw_glyph_dsc_t(struct_obj) (*((lv_draw_glyph_dsc_t*)mp_write_value_ptr_lv_draw_glyph_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_glyph_dsc_t(void *field)
 {
@@ -51663,11 +53892,17 @@ static int py_lv_draw_triangle_dsc_t_setattro(PyObject *self, PyObject *name, Py
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_triangle_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "p") == 0) { memcpy((void*)&data->p, mp_to_ptr(value), sizeof(lv_point_precise_t)*3); result = 0; }
     if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
     if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "grad") == 0) { data->grad = mp_write_lv_grad_dsc_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_triangle_dsc_t' object has no attribute '%s'", attr);
     }
@@ -51707,7 +53942,28 @@ static inline void* mp_write_ptr_lv_draw_triangle_dsc_t(PyObject *self_in)
     return (lv_draw_triangle_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_triangle_dsc_t(struct_obj) (*((lv_draw_triangle_dsc_t*)mp_write_ptr_lv_draw_triangle_dsc_t(struct_obj)))
+static lv_draw_triangle_dsc_t mp_write_scratch_lv_draw_triangle_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_triangle_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_triangle_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_triangle_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_triangle_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_triangle_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_triangle_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_triangle_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_triangle_dsc_t, 0, sizeof(lv_draw_triangle_dsc_t));
+    return &mp_write_scratch_lv_draw_triangle_dsc_t;
+}
+
+#define mp_write_lv_draw_triangle_dsc_t(struct_obj) (*((lv_draw_triangle_dsc_t*)mp_write_value_ptr_lv_draw_triangle_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_triangle_dsc_t(void *field)
 {
@@ -51767,7 +54023,12 @@ static int py_lv_indev_gesture_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    
     (void)value;
+    if (PyErr_Occurred()) {
+        
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_indev_gesture_t' object has no attribute '%s'", attr);
     }
@@ -51857,7 +54118,12 @@ static int py_lv_indev_gesture_configuration_t_setattro(PyObject *self, PyObject
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    
     (void)value;
+    if (PyErr_Occurred()) {
+        
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_indev_gesture_configuration_t' object has no attribute '%s'", attr);
     }
@@ -51967,6 +54233,8 @@ static int py_lv_indev_gesture_recognizer_t_setattro(PyObject *self, PyObject *n
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_indev_gesture_recognizer_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "type") == 0) { data->type = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "state") == 0) { data->state = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "info") == 0) { data->info = (void*)mp_write_ptr_lv_indev_gesture_t(value); result = 0; }
@@ -51977,6 +54245,10 @@ static int py_lv_indev_gesture_recognizer_t_setattro(PyObject *self, PyObject *n
     if (strcmp(attr, "two_fingers_swipe_dir") == 0) { data->two_fingers_swipe_dir = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "config") == 0) { data->config = (void*)mp_write_ptr_lv_indev_gesture_configuration_t(value); result = 0; }
     if (strcmp(attr, "recog_fn") == 0) { data->recog_fn = mp_lv_callback(value, NULL, "lv_indev_gesture_recognizer_t_recog_fn", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_indev_gesture_recognizer_t' object has no attribute '%s'", attr);
     }
@@ -52016,7 +54288,28 @@ static inline void* mp_write_ptr_lv_indev_gesture_recognizer_t(PyObject *self_in
     return (lv_indev_gesture_recognizer_t*)self->data;
 }
 
-#define mp_write_lv_indev_gesture_recognizer_t(struct_obj) (*((lv_indev_gesture_recognizer_t*)mp_write_ptr_lv_indev_gesture_recognizer_t(struct_obj)))
+static lv_indev_gesture_recognizer_t mp_write_scratch_lv_indev_gesture_recognizer_t;
+
+static inline void* mp_write_value_ptr_lv_indev_gesture_recognizer_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_indev_gesture_recognizer_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_indev_gesture_recognizer_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_indev_gesture_recognizer_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_indev_gesture_recognizer_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_indev_gesture_recognizer_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_indev_gesture_recognizer_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_indev_gesture_recognizer_t, 0, sizeof(lv_indev_gesture_recognizer_t));
+    return &mp_write_scratch_lv_indev_gesture_recognizer_t;
+}
+
+#define mp_write_lv_indev_gesture_recognizer_t(struct_obj) (*((lv_indev_gesture_recognizer_t*)mp_write_value_ptr_lv_indev_gesture_recognizer_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_indev_gesture_recognizer_t(void *field)
 {
@@ -52099,6 +54392,8 @@ static int py_lv_indev_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_indev_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "type") == 0) { data->type = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "read_cb") == 0) { data->read_cb = mp_lv_callback(value, lv_indev_t_read_cb_callback, "lv_indev_t_read_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "state") == 0) { data->state = (int)mp_obj_get_int(value); result = 0; }
@@ -52133,6 +54428,10 @@ static int py_lv_indev_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "cur_gesture") == 0) { data->cur_gesture = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "gesture_data") == 0) { memcpy((void*)&data->gesture_data, mp_to_ptr(value), sizeof(void *)*LV_INDEV_GESTURE_CNT); result = 0; }
     if (strcmp(attr, "gesture_type") == 0) { memcpy((void*)&data->gesture_type, mp_to_ptr(value), sizeof(lv_indev_gesture_type_t)*LV_INDEV_GESTURE_CNT); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_indev_t' object has no attribute '%s'", attr);
     }
@@ -52172,7 +54471,28 @@ static inline void* mp_write_ptr_lv_indev_t(PyObject *self_in)
     return (lv_indev_t*)self->data;
 }
 
-#define mp_write_lv_indev_t(struct_obj) (*((lv_indev_t*)mp_write_ptr_lv_indev_t(struct_obj)))
+static lv_indev_t mp_write_scratch_lv_indev_t;
+
+static inline void* mp_write_value_ptr_lv_indev_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_indev_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_indev_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_indev_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_indev_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_indev_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_indev_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_indev_t, 0, sizeof(lv_indev_t));
+    return &mp_write_scratch_lv_indev_t;
+}
+
+#define mp_write_lv_indev_t(struct_obj) (*((lv_indev_t*)mp_write_value_ptr_lv_indev_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_indev_t(void *field)
 {
@@ -52230,6 +54550,8 @@ static int py_lv_indev_data_t_setattro(PyObject *self, PyObject *name, PyObject 
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_indev_data_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "gesture_type") == 0) { memcpy((void*)&data->gesture_type, mp_to_ptr(value), sizeof(lv_indev_gesture_type_t)*LV_INDEV_GESTURE_CNT); result = 0; }
     if (strcmp(attr, "gesture_data") == 0) { memcpy((void*)&data->gesture_data, mp_to_ptr(value), sizeof(void *)*LV_INDEV_GESTURE_CNT); result = 0; }
     if (strcmp(attr, "state") == 0) { data->state = (int)mp_obj_get_int(value); result = 0; }
@@ -52239,6 +54561,10 @@ static int py_lv_indev_data_t_setattro(PyObject *self, PyObject *name, PyObject 
     if (strcmp(attr, "enc_diff") == 0) { data->enc_diff = (int16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "timestamp") == 0) { data->timestamp = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "continue_reading") == 0) { data->continue_reading = mp_obj_is_true(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_indev_data_t' object has no attribute '%s'", attr);
     }
@@ -52278,7 +54604,28 @@ static inline void* mp_write_ptr_lv_indev_data_t(PyObject *self_in)
     return (lv_indev_data_t*)self->data;
 }
 
-#define mp_write_lv_indev_data_t(struct_obj) (*((lv_indev_data_t*)mp_write_ptr_lv_indev_data_t(struct_obj)))
+static lv_indev_data_t mp_write_scratch_lv_indev_data_t;
+
+static inline void* mp_write_value_ptr_lv_indev_data_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_indev_data_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_indev_data_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_indev_data_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_indev_data_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_indev_data_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_indev_data_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_indev_data_t, 0, sizeof(lv_indev_data_t));
+    return &mp_write_scratch_lv_indev_data_t;
+}
+
+#define mp_write_lv_indev_data_t(struct_obj) (*((lv_indev_data_t*)mp_write_value_ptr_lv_indev_data_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_indev_data_t(void *field)
 {
@@ -52331,10 +54678,16 @@ static int py_lv_draw_mask_rect_dsc_t_setattro(PyObject *self, PyObject *name, P
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_mask_rect_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base") == 0) { data->base = mp_write_lv_draw_dsc_base_t(value); result = 0; }
     if (strcmp(attr, "area") == 0) { data->area = mp_write_lv_area_t(value); result = 0; }
     if (strcmp(attr, "radius") == 0) { data->radius = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "keep_outside") == 0) { data->keep_outside = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_mask_rect_dsc_t' object has no attribute '%s'", attr);
     }
@@ -52374,7 +54727,28 @@ static inline void* mp_write_ptr_lv_draw_mask_rect_dsc_t(PyObject *self_in)
     return (lv_draw_mask_rect_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_mask_rect_dsc_t(struct_obj) (*((lv_draw_mask_rect_dsc_t*)mp_write_ptr_lv_draw_mask_rect_dsc_t(struct_obj)))
+static lv_draw_mask_rect_dsc_t mp_write_scratch_lv_draw_mask_rect_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_mask_rect_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_mask_rect_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_mask_rect_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_mask_rect_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_mask_rect_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_mask_rect_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_mask_rect_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_mask_rect_dsc_t, 0, sizeof(lv_draw_mask_rect_dsc_t));
+    return &mp_write_scratch_lv_draw_mask_rect_dsc_t;
+}
+
+#define mp_write_lv_draw_mask_rect_dsc_t(struct_obj) (*((lv_draw_mask_rect_dsc_t*)mp_write_value_ptr_lv_draw_mask_rect_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_mask_rect_dsc_t(void *field)
 {
@@ -52436,8 +54810,14 @@ static int py_lv_draw_sw_mask_common_dsc_t_setattro(PyObject *self, PyObject *na
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_common_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "cb") == 0) { data->cb = mp_lv_callback(value, NULL, "lv_draw_sw_mask_common_dsc_t_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "type") == 0) { data->type = (int)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_common_dsc_t' object has no attribute '%s'", attr);
     }
@@ -52477,7 +54857,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_common_dsc_t(PyObject *self_in)
     return (lv_draw_sw_mask_common_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_common_dsc_t(struct_obj) (*((lv_draw_sw_mask_common_dsc_t*)mp_write_ptr_lv_draw_sw_mask_common_dsc_t(struct_obj)))
+static lv_draw_sw_mask_common_dsc_t mp_write_scratch_lv_draw_sw_mask_common_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_common_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_common_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_common_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_common_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_common_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_common_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_common_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_common_dsc_t, 0, sizeof(lv_draw_sw_mask_common_dsc_t));
+    return &mp_write_scratch_lv_draw_sw_mask_common_dsc_t;
+}
+
+#define mp_write_lv_draw_sw_mask_common_dsc_t(struct_obj) (*((lv_draw_sw_mask_common_dsc_t*)mp_write_value_ptr_lv_draw_sw_mask_common_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_common_dsc_t(void *field)
 {
@@ -52534,6 +54935,8 @@ static int py_lv_draw_sw_mask_line_param_t_setattro(PyObject *self, PyObject *na
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_line_param_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dsc") == 0) { data->dsc = mp_write_lv_draw_sw_mask_common_dsc_t(value); result = 0; }
     if (strcmp(attr, "origo") == 0) { data->origo = mp_write_lv_point_t(value); result = 0; }
     if (strcmp(attr, "xy_steep") == 0) { data->xy_steep = (int32_t)mp_obj_get_int(value); result = 0; }
@@ -52542,6 +54945,10 @@ static int py_lv_draw_sw_mask_line_param_t_setattro(PyObject *self, PyObject *na
     if (strcmp(attr, "spx") == 0) { data->spx = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "flat") == 0) { data->flat = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "inv") == 0) { data->inv = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_line_param_t' object has no attribute '%s'", attr);
     }
@@ -52581,7 +54988,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_line_param_t(PyObject *self_in)
     return (lv_draw_sw_mask_line_param_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_line_param_t(struct_obj) (*((lv_draw_sw_mask_line_param_t*)mp_write_ptr_lv_draw_sw_mask_line_param_t(struct_obj)))
+static lv_draw_sw_mask_line_param_t mp_write_scratch_lv_draw_sw_mask_line_param_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_line_param_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_line_param_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_line_param_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_line_param_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_line_param_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_line_param_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_line_param_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_line_param_t, 0, sizeof(lv_draw_sw_mask_line_param_t));
+    return &mp_write_scratch_lv_draw_sw_mask_line_param_t;
+}
+
+#define mp_write_lv_draw_sw_mask_line_param_t(struct_obj) (*((lv_draw_sw_mask_line_param_t*)mp_write_value_ptr_lv_draw_sw_mask_line_param_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_line_param_t(void *field)
 {
@@ -52634,10 +55062,16 @@ static int py_lv_draw_sw_mask_angle_param_t_setattro(PyObject *self, PyObject *n
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_angle_param_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dsc") == 0) { data->dsc = mp_write_lv_draw_sw_mask_common_dsc_t(value); result = 0; }
     if (strcmp(attr, "start_line") == 0) { data->start_line = mp_write_lv_draw_sw_mask_line_param_t(value); result = 0; }
     if (strcmp(attr, "end_line") == 0) { data->end_line = mp_write_lv_draw_sw_mask_line_param_t(value); result = 0; }
     if (strcmp(attr, "delta_deg") == 0) { data->delta_deg = (uint16_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_angle_param_t' object has no attribute '%s'", attr);
     }
@@ -52677,7 +55111,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_angle_param_t(PyObject *self_in
     return (lv_draw_sw_mask_angle_param_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_angle_param_t(struct_obj) (*((lv_draw_sw_mask_angle_param_t*)mp_write_ptr_lv_draw_sw_mask_angle_param_t(struct_obj)))
+static lv_draw_sw_mask_angle_param_t mp_write_scratch_lv_draw_sw_mask_angle_param_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_angle_param_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_angle_param_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_angle_param_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_angle_param_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_angle_param_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_angle_param_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_angle_param_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_angle_param_t, 0, sizeof(lv_draw_sw_mask_angle_param_t));
+    return &mp_write_scratch_lv_draw_sw_mask_angle_param_t;
+}
+
+#define mp_write_lv_draw_sw_mask_angle_param_t(struct_obj) (*((lv_draw_sw_mask_angle_param_t*)mp_write_value_ptr_lv_draw_sw_mask_angle_param_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_angle_param_t(void *field)
 {
@@ -52733,6 +55188,8 @@ static int py_lv_draw_sw_mask_radius_circle_dsc_t_setattro(PyObject *self, PyObj
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_radius_circle_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "buf") == 0) { data->buf = (void*)mp_array_to_u8ptr(value); result = 0; }
     if (strcmp(attr, "cir_opa") == 0) { data->cir_opa = (void*)mp_array_to_u8ptr(value); result = 0; }
     if (strcmp(attr, "x_start_on_y") == 0) { data->x_start_on_y = (void*)mp_array_to_u16ptr(value); result = 0; }
@@ -52740,6 +55197,10 @@ static int py_lv_draw_sw_mask_radius_circle_dsc_t_setattro(PyObject *self, PyObj
     if (strcmp(attr, "life") == 0) { data->life = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "used_cnt") == 0) { data->used_cnt = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "radius") == 0) { data->radius = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_radius_circle_dsc_t' object has no attribute '%s'", attr);
     }
@@ -52779,7 +55240,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_radius_circle_dsc_t(PyObject *s
     return (lv_draw_sw_mask_radius_circle_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_radius_circle_dsc_t(struct_obj) (*((lv_draw_sw_mask_radius_circle_dsc_t*)mp_write_ptr_lv_draw_sw_mask_radius_circle_dsc_t(struct_obj)))
+static lv_draw_sw_mask_radius_circle_dsc_t mp_write_scratch_lv_draw_sw_mask_radius_circle_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_radius_circle_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_radius_circle_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_radius_circle_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_radius_circle_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_radius_circle_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_radius_circle_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_radius_circle_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_radius_circle_dsc_t, 0, sizeof(lv_draw_sw_mask_radius_circle_dsc_t));
+    return &mp_write_scratch_lv_draw_sw_mask_radius_circle_dsc_t;
+}
+
+#define mp_write_lv_draw_sw_mask_radius_circle_dsc_t(struct_obj) (*((lv_draw_sw_mask_radius_circle_dsc_t*)mp_write_value_ptr_lv_draw_sw_mask_radius_circle_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_radius_circle_dsc_t(void *field)
 {
@@ -52830,8 +55312,14 @@ static int py_lv_draw_sw_mask_radius_param_t_setattro(PyObject *self, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_radius_param_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dsc") == 0) { data->dsc = mp_write_lv_draw_sw_mask_common_dsc_t(value); result = 0; }
     if (strcmp(attr, "circle") == 0) { data->circle = (void*)mp_write_ptr_lv_draw_sw_mask_radius_circle_dsc_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_radius_param_t' object has no attribute '%s'", attr);
     }
@@ -52871,7 +55359,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_radius_param_t(PyObject *self_i
     return (lv_draw_sw_mask_radius_param_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_radius_param_t(struct_obj) (*((lv_draw_sw_mask_radius_param_t*)mp_write_ptr_lv_draw_sw_mask_radius_param_t(struct_obj)))
+static lv_draw_sw_mask_radius_param_t mp_write_scratch_lv_draw_sw_mask_radius_param_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_radius_param_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_radius_param_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_radius_param_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_radius_param_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_radius_param_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_radius_param_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_radius_param_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_radius_param_t, 0, sizeof(lv_draw_sw_mask_radius_param_t));
+    return &mp_write_scratch_lv_draw_sw_mask_radius_param_t;
+}
+
+#define mp_write_lv_draw_sw_mask_radius_param_t(struct_obj) (*((lv_draw_sw_mask_radius_param_t*)mp_write_value_ptr_lv_draw_sw_mask_radius_param_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_radius_param_t(void *field)
 {
@@ -52921,7 +55430,13 @@ static int py_lv_draw_sw_mask_fade_param_t_setattro(PyObject *self, PyObject *na
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_fade_param_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dsc") == 0) { data->dsc = mp_write_lv_draw_sw_mask_common_dsc_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_fade_param_t' object has no attribute '%s'", attr);
     }
@@ -52961,7 +55476,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_fade_param_t(PyObject *self_in)
     return (lv_draw_sw_mask_fade_param_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_fade_param_t(struct_obj) (*((lv_draw_sw_mask_fade_param_t*)mp_write_ptr_lv_draw_sw_mask_fade_param_t(struct_obj)))
+static lv_draw_sw_mask_fade_param_t mp_write_scratch_lv_draw_sw_mask_fade_param_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_fade_param_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_fade_param_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_fade_param_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_fade_param_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_fade_param_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_fade_param_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_fade_param_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_fade_param_t, 0, sizeof(lv_draw_sw_mask_fade_param_t));
+    return &mp_write_scratch_lv_draw_sw_mask_fade_param_t;
+}
+
+#define mp_write_lv_draw_sw_mask_fade_param_t(struct_obj) (*((lv_draw_sw_mask_fade_param_t*)mp_write_value_ptr_lv_draw_sw_mask_fade_param_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_fade_param_t(void *field)
 {
@@ -53011,7 +55547,13 @@ static int py_lv_draw_sw_mask_map_param_t_setattro(PyObject *self, PyObject *nam
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_mask_map_param_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dsc") == 0) { data->dsc = mp_write_lv_draw_sw_mask_common_dsc_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_mask_map_param_t' object has no attribute '%s'", attr);
     }
@@ -53051,7 +55593,28 @@ static inline void* mp_write_ptr_lv_draw_sw_mask_map_param_t(PyObject *self_in)
     return (lv_draw_sw_mask_map_param_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_mask_map_param_t(struct_obj) (*((lv_draw_sw_mask_map_param_t*)mp_write_ptr_lv_draw_sw_mask_map_param_t(struct_obj)))
+static lv_draw_sw_mask_map_param_t mp_write_scratch_lv_draw_sw_mask_map_param_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_mask_map_param_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_mask_map_param_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_mask_map_param_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_mask_map_param_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_mask_map_param_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_mask_map_param_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_mask_map_param_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_mask_map_param_t, 0, sizeof(lv_draw_sw_mask_map_param_t));
+    return &mp_write_scratch_lv_draw_sw_mask_map_param_t;
+}
+
+#define mp_write_lv_draw_sw_mask_map_param_t(struct_obj) (*((lv_draw_sw_mask_map_param_t*)mp_write_value_ptr_lv_draw_sw_mask_map_param_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_mask_map_param_t(void *field)
 {
@@ -53113,8 +55676,14 @@ static int py_lv_draw_sw_custom_blend_handler_t_setattro(PyObject *self, PyObjec
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_custom_blend_handler_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "dest_cf") == 0) { data->dest_cf = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "handler") == 0) { data->handler = mp_lv_callback(value, NULL, "lv_draw_sw_custom_blend_handler_t_handler", NULL, NULL, NULL, NULL); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_custom_blend_handler_t' object has no attribute '%s'", attr);
     }
@@ -53154,7 +55723,28 @@ static inline void* mp_write_ptr_lv_draw_sw_custom_blend_handler_t(PyObject *sel
     return (lv_draw_sw_custom_blend_handler_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_custom_blend_handler_t(struct_obj) (*((lv_draw_sw_custom_blend_handler_t*)mp_write_ptr_lv_draw_sw_custom_blend_handler_t(struct_obj)))
+static lv_draw_sw_custom_blend_handler_t mp_write_scratch_lv_draw_sw_custom_blend_handler_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_custom_blend_handler_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_custom_blend_handler_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_custom_blend_handler_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_custom_blend_handler_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_custom_blend_handler_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_custom_blend_handler_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_custom_blend_handler_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_custom_blend_handler_t, 0, sizeof(lv_draw_sw_custom_blend_handler_t));
+    return &mp_write_scratch_lv_draw_sw_custom_blend_handler_t;
+}
+
+#define mp_write_lv_draw_sw_custom_blend_handler_t(struct_obj) (*((lv_draw_sw_custom_blend_handler_t*)mp_write_value_ptr_lv_draw_sw_custom_blend_handler_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_custom_blend_handler_t(void *field)
 {
@@ -53207,10 +55797,16 @@ static int py_lv_text_attributes_t_setattro(PyObject *self, PyObject *name, PyOb
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_text_attributes_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "letter_space") == 0) { data->letter_space = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "line_space") == 0) { data->line_space = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "max_width") == 0) { data->max_width = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "text_flags") == 0) { data->text_flags = (int)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_text_attributes_t' object has no attribute '%s'", attr);
     }
@@ -53250,7 +55846,28 @@ static inline void* mp_write_ptr_lv_text_attributes_t(PyObject *self_in)
     return (lv_text_attributes_t*)self->data;
 }
 
-#define mp_write_lv_text_attributes_t(struct_obj) (*((lv_text_attributes_t*)mp_write_ptr_lv_text_attributes_t(struct_obj)))
+static lv_text_attributes_t mp_write_scratch_lv_text_attributes_t;
+
+static inline void* mp_write_value_ptr_lv_text_attributes_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_text_attributes_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_text_attributes_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_text_attributes_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_text_attributes_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_text_attributes_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_text_attributes_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_text_attributes_t, 0, sizeof(lv_text_attributes_t));
+    return &mp_write_scratch_lv_text_attributes_t;
+}
+
+#define mp_write_lv_text_attributes_t(struct_obj) (*((lv_text_attributes_t*)mp_write_value_ptr_lv_text_attributes_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_text_attributes_t(void *field)
 {
@@ -56065,8 +58682,14 @@ static int py_lv_sqrt_res_t_setattro(PyObject *self, PyObject *name, PyObject *v
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_sqrt_res_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "i") == 0) { data->i = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "f") == 0) { data->f = (uint16_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_sqrt_res_t' object has no attribute '%s'", attr);
     }
@@ -56106,7 +58729,28 @@ static inline void* mp_write_ptr_lv_sqrt_res_t(PyObject *self_in)
     return (lv_sqrt_res_t*)self->data;
 }
 
-#define mp_write_lv_sqrt_res_t(struct_obj) (*((lv_sqrt_res_t*)mp_write_ptr_lv_sqrt_res_t(struct_obj)))
+static lv_sqrt_res_t mp_write_scratch_lv_sqrt_res_t;
+
+static inline void* mp_write_value_ptr_lv_sqrt_res_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_sqrt_res_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_sqrt_res_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_sqrt_res_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_sqrt_res_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_sqrt_res_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_sqrt_res_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_sqrt_res_t, 0, sizeof(lv_sqrt_res_t));
+    return &mp_write_scratch_lv_sqrt_res_t;
+}
+
+#define mp_write_lv_sqrt_res_t(struct_obj) (*((lv_sqrt_res_t*)mp_write_value_ptr_lv_sqrt_res_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_sqrt_res_t(void *field)
 {
@@ -57173,9 +59817,15 @@ static int py_lv_color_hsv_t_setattro(PyObject *self, PyObject *name, PyObject *
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_color_hsv_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "h") == 0) { data->h = (uint16_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "s") == 0) { data->s = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "v") == 0) { data->v = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_color_hsv_t' object has no attribute '%s'", attr);
     }
@@ -57215,7 +59865,28 @@ static inline void* mp_write_ptr_lv_color_hsv_t(PyObject *self_in)
     return (lv_color_hsv_t*)self->data;
 }
 
-#define mp_write_lv_color_hsv_t(struct_obj) (*((lv_color_hsv_t*)mp_write_ptr_lv_color_hsv_t(struct_obj)))
+static lv_color_hsv_t mp_write_scratch_lv_color_hsv_t;
+
+static inline void* mp_write_value_ptr_lv_color_hsv_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_hsv_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color_hsv_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_hsv_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color_hsv_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color_hsv_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_hsv_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color_hsv_t, 0, sizeof(lv_color_hsv_t));
+    return &mp_write_scratch_lv_color_hsv_t;
+}
+
+#define mp_write_lv_color_hsv_t(struct_obj) (*((lv_color_hsv_t*)mp_write_value_ptr_lv_color_hsv_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_color_hsv_t(void *field)
 {
@@ -70407,6 +73078,8 @@ static int py_lv_draw_sw_blend_dsc_t_setattro(PyObject *self, PyObject *name, Py
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_draw_sw_blend_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "blend_area") == 0) { data->blend_area = (void*)mp_write_ptr_lv_area_t(value); result = 0; }
     if (strcmp(attr, "src_buf") == 0) { data->src_buf = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "src_stride") == 0) { data->src_stride = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -70419,6 +73092,10 @@ static int py_lv_draw_sw_blend_dsc_t_setattro(PyObject *self, PyObject *name, Py
     if (strcmp(attr, "mask_area") == 0) { data->mask_area = (void*)mp_write_ptr_lv_area_t(value); result = 0; }
     if (strcmp(attr, "mask_stride") == 0) { data->mask_stride = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "blend_mode") == 0) { data->blend_mode = (int)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_draw_sw_blend_dsc_t' object has no attribute '%s'", attr);
     }
@@ -70458,7 +73135,28 @@ static inline void* mp_write_ptr_lv_draw_sw_blend_dsc_t(PyObject *self_in)
     return (lv_draw_sw_blend_dsc_t*)self->data;
 }
 
-#define mp_write_lv_draw_sw_blend_dsc_t(struct_obj) (*((lv_draw_sw_blend_dsc_t*)mp_write_ptr_lv_draw_sw_blend_dsc_t(struct_obj)))
+static lv_draw_sw_blend_dsc_t mp_write_scratch_lv_draw_sw_blend_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_draw_sw_blend_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_draw_sw_blend_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_draw_sw_blend_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_draw_sw_blend_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_draw_sw_blend_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_draw_sw_blend_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_draw_sw_blend_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_draw_sw_blend_dsc_t, 0, sizeof(lv_draw_sw_blend_dsc_t));
+    return &mp_write_scratch_lv_draw_sw_blend_dsc_t;
+}
+
+#define mp_write_lv_draw_sw_blend_dsc_t(struct_obj) (*((lv_draw_sw_blend_dsc_t*)mp_write_value_ptr_lv_draw_sw_blend_dsc_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_draw_sw_blend_dsc_t(void *field)
 {
@@ -79660,8 +82358,14 @@ static int py_lv_hit_test_info_t_setattro(PyObject *self, PyObject *name, PyObje
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_hit_test_info_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "point") == 0) { data->point = (void*)mp_write_ptr_lv_point_t(value); result = 0; }
     if (strcmp(attr, "res") == 0) { data->res = mp_obj_is_true(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_hit_test_info_t' object has no attribute '%s'", attr);
     }
@@ -79701,7 +82405,28 @@ static inline void* mp_write_ptr_lv_hit_test_info_t(PyObject *self_in)
     return (lv_hit_test_info_t*)self->data;
 }
 
-#define mp_write_lv_hit_test_info_t(struct_obj) (*((lv_hit_test_info_t*)mp_write_ptr_lv_hit_test_info_t(struct_obj)))
+static lv_hit_test_info_t mp_write_scratch_lv_hit_test_info_t;
+
+static inline void* mp_write_value_ptr_lv_hit_test_info_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_hit_test_info_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_hit_test_info_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_hit_test_info_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_hit_test_info_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_hit_test_info_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_hit_test_info_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_hit_test_info_t, 0, sizeof(lv_hit_test_info_t));
+    return &mp_write_scratch_lv_hit_test_info_t;
+}
+
+#define mp_write_lv_hit_test_info_t(struct_obj) (*((lv_hit_test_info_t*)mp_write_value_ptr_lv_hit_test_info_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_hit_test_info_t(void *field)
 {
@@ -87415,10 +90140,16 @@ static int py_lv_indev_touch_data_t_setattro(PyObject *self, PyObject *name, PyO
     const char *attr = PyUnicode_AsUTF8(name);
     if (attr == NULL) return -1;
     int result = -1;
+    lv_indev_touch_data_t saved;
+    memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "point") == 0) { data->point = mp_write_lv_point_t(value); result = 0; }
     if (strcmp(attr, "state") == 0) { data->state = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "id") == 0) { data->id = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "timestamp") == 0) { data->timestamp = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
     if (result < 0) {
         PyErr_Format(PyExc_AttributeError, "'lv_indev_touch_data_t' object has no attribute '%s'", attr);
     }
@@ -87458,7 +90189,28 @@ static inline void* mp_write_ptr_lv_indev_touch_data_t(PyObject *self_in)
     return (lv_indev_touch_data_t*)self->data;
 }
 
-#define mp_write_lv_indev_touch_data_t(struct_obj) (*((lv_indev_touch_data_t*)mp_write_ptr_lv_indev_touch_data_t(struct_obj)))
+static lv_indev_touch_data_t mp_write_scratch_lv_indev_touch_data_t;
+
+static inline void* mp_write_value_ptr_lv_indev_touch_data_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_indev_touch_data_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_indev_touch_data_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_indev_touch_data_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_indev_touch_data_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_indev_touch_data_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_indev_touch_data_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_indev_touch_data_t, 0, sizeof(lv_indev_touch_data_t));
+    return &mp_write_scratch_lv_indev_touch_data_t;
+}
+
+#define mp_write_lv_indev_touch_data_t(struct_obj) (*((lv_indev_touch_data_t*)mp_write_value_ptr_lv_indev_touch_data_t(struct_obj)))
 
 static inline PyObject *mp_read_ptr_lv_indev_touch_data_t(void *field)
 {
