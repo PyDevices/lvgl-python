@@ -98,7 +98,33 @@ static void *lvpy_str_arr_arg(PyObject *self, PyObject *arg, const char *key)
 
 /*
  * CPython phase-2 enum namespace types
+ *
+ * Members resolve through each type's tp_getattro. __dir__ lists them from a
+ * static name table, so dir(), help() and REPL completion can find them.
  */
+
+static PyObject *lvpy_enum_dir(PyObject *self, const char *const *members)
+{
+    PyObject *base = PyObject_CallMethod((PyObject *)&PyBaseObject_Type, "__dir__", "O", self);
+    if (base == NULL) {
+        return NULL;
+    }
+    PyObject *names = PySequence_List(base);
+    Py_DECREF(base);
+    if (names == NULL) {
+        return NULL;
+    }
+    for (const char *const *m = members; *m != NULL; m++) {
+        PyObject *s = PyUnicode_FromString(*m);
+        if (s == NULL || PyList_Append(names, s) < 0) {
+            Py_XDECREF(s);
+            Py_DECREF(names);
+            return NULL;
+        }
+        Py_DECREF(s);
+    }
+    return names;
+}
 
 
 static PyObject *py_lv_ENUM_LV_LOG_LEVEL_getattro(PyObject *self, PyObject *name)
@@ -120,15 +146,35 @@ static PyObject *py_lv_ENUM_LV_LOG_LEVEL_getattro(PyObject *self, PyObject *name
     if (strcmp(attr, "USER") == 0) return PyLong_FromLong(ENUM_LV_LOG_LEVEL_USER);
     if (strcmp(attr, "NONE") == 0) return PyLong_FromLong(ENUM_LV_LOG_LEVEL_NONE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.LOG_LEVEL' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_ENUM_LV_LOG_LEVEL_members[] = {
+    "TRACE",
+    "INFO",
+    "WARN",
+    "ERROR",
+    "USER",
+    "NONE",
+    NULL
+};
+
+static PyObject *py_lv_ENUM_LV_LOG_LEVEL_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_ENUM_LV_LOG_LEVEL_members);
+}
+
+static PyMethodDef py_lv_ENUM_LV_LOG_LEVEL_methods[] = {
+    {"__dir__", py_lv_ENUM_LV_LOG_LEVEL_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_ENUM_LV_LOG_LEVEL_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.LOG_LEVEL",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_ENUM_LV_LOG_LEVEL_getattro,
+    .tp_methods = py_lv_ENUM_LV_LOG_LEVEL_methods,
     .tp_doc = "LVGL LOG_LEVEL enum namespace",
 };
 
@@ -148,15 +194,31 @@ static PyObject *py_lv_ENUM_LV_COORD_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "MAX") == 0) return PyLong_FromLong(ENUM_LV_COORD_MAX);
     if (strcmp(attr, "MIN") == 0) return PyLong_FromLong(ENUM_LV_COORD_MIN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.COORD' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_ENUM_LV_COORD_members[] = {
+    "MAX",
+    "MIN",
+    NULL
+};
+
+static PyObject *py_lv_ENUM_LV_COORD_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_ENUM_LV_COORD_members);
+}
+
+static PyMethodDef py_lv_ENUM_LV_COORD_methods[] = {
+    {"__dir__", py_lv_ENUM_LV_COORD_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_ENUM_LV_COORD_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.COORD",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_ENUM_LV_COORD_getattro,
+    .tp_methods = py_lv_ENUM_LV_COORD_methods,
     .tp_doc = "LVGL COORD enum namespace",
 };
 
@@ -187,15 +249,42 @@ static PyObject *py_lv_LV_OPA_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "_100") == 0) return PyLong_FromLong(LV_OPA_100);
     if (strcmp(attr, "COVER") == 0) return PyLong_FromLong(LV_OPA_COVER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OPA' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OPA_members[] = {
+    "TRANSP",
+    "_0",
+    "_10",
+    "_20",
+    "_30",
+    "_40",
+    "_50",
+    "_60",
+    "_70",
+    "_80",
+    "_90",
+    "_100",
+    "COVER",
+    NULL
+};
+
+static PyObject *py_lv_LV_OPA_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OPA_members);
+}
+
+static PyMethodDef py_lv_LV_OPA_methods[] = {
+    {"__dir__", py_lv_LV_OPA_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OPA_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OPA",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OPA_getattro,
+    .tp_methods = py_lv_LV_OPA_methods,
     .tp_doc = "LVGL OPA enum namespace",
 };
 
@@ -215,15 +304,31 @@ static PyObject *py_lv_LV_TREE_WALK_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "PRE_ORDER") == 0) return PyLong_FromLong(LV_TREE_WALK_PRE_ORDER);
     if (strcmp(attr, "POST_ORDER") == 0) return PyLong_FromLong(LV_TREE_WALK_POST_ORDER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.TREE_WALK' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_TREE_WALK_members[] = {
+    "PRE_ORDER",
+    "POST_ORDER",
+    NULL
+};
+
+static PyObject *py_lv_LV_TREE_WALK_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_TREE_WALK_members);
+}
+
+static PyMethodDef py_lv_LV_TREE_WALK_methods[] = {
+    {"__dir__", py_lv_LV_TREE_WALK_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_TREE_WALK_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.TREE_WALK",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_TREE_WALK_getattro,
+    .tp_methods = py_lv_LV_TREE_WALK_methods,
     .tp_doc = "LVGL TREE_WALK enum namespace",
 };
 
@@ -303,15 +408,91 @@ static PyObject *py_lv_LV_STR_SYMBOL_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NEW_LINE") == 0) return PyLong_FromLong(LV_STR_SYMBOL_NEW_LINE);
     if (strcmp(attr, "DUMMY") == 0) return PyLong_FromLong(LV_STR_SYMBOL_DUMMY);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.STR_SYMBOL' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_STR_SYMBOL_members[] = {
+    "BULLET",
+    "AUDIO",
+    "VIDEO",
+    "LIST",
+    "OK",
+    "CLOSE",
+    "POWER",
+    "SETTINGS",
+    "HOME",
+    "DOWNLOAD",
+    "DRIVE",
+    "REFRESH",
+    "MUTE",
+    "VOLUME_MID",
+    "VOLUME_MAX",
+    "IMAGE",
+    "TINT",
+    "PREV",
+    "PLAY",
+    "PAUSE",
+    "STOP",
+    "NEXT",
+    "EJECT",
+    "LEFT",
+    "RIGHT",
+    "PLUS",
+    "MINUS",
+    "EYE_OPEN",
+    "EYE_CLOSE",
+    "WARNING",
+    "SHUFFLE",
+    "UP",
+    "DOWN",
+    "LOOP",
+    "DIRECTORY",
+    "UPLOAD",
+    "CALL",
+    "CUT",
+    "COPY",
+    "SAVE",
+    "BARS",
+    "ENVELOPE",
+    "CHARGE",
+    "PASTE",
+    "BELL",
+    "KEYBOARD",
+    "GPS",
+    "FILE",
+    "WIFI",
+    "BATTERY_FULL",
+    "BATTERY_3",
+    "BATTERY_2",
+    "BATTERY_1",
+    "BATTERY_EMPTY",
+    "USB",
+    "BLUETOOTH",
+    "TRASH",
+    "EDIT",
+    "BACKSPACE",
+    "SD_CARD",
+    "NEW_LINE",
+    "DUMMY",
+    NULL
+};
+
+static PyObject *py_lv_LV_STR_SYMBOL_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_STR_SYMBOL_members);
+}
+
+static PyMethodDef py_lv_LV_STR_SYMBOL_methods[] = {
+    {"__dir__", py_lv_LV_STR_SYMBOL_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_STR_SYMBOL_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.STR_SYMBOL",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_STR_SYMBOL_getattro,
+    .tp_methods = py_lv_LV_STR_SYMBOL_methods,
     .tp_doc = "LVGL STR_SYMBOL enum namespace",
 };
 
@@ -462,15 +643,162 @@ static PyObject *py_lv_LV_STYLE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "PROP_ANY") == 0) return PyLong_FromLong(LV_STYLE_PROP_ANY);
     if (strcmp(attr, "PROP_CONST") == 0) return PyLong_FromLong(LV_STYLE_PROP_CONST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.STYLE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_STYLE_members[] = {
+    "PROP_INV",
+    "WIDTH",
+    "HEIGHT",
+    "LENGTH",
+    "TRANSFORM_WIDTH",
+    "TRANSFORM_HEIGHT",
+    "MIN_WIDTH",
+    "MAX_WIDTH",
+    "MIN_HEIGHT",
+    "MAX_HEIGHT",
+    "TRANSLATE_X",
+    "TRANSLATE_Y",
+    "RADIAL_OFFSET",
+    "X",
+    "Y",
+    "ALIGN",
+    "PAD_TOP",
+    "PAD_BOTTOM",
+    "PAD_LEFT",
+    "PAD_RIGHT",
+    "PAD_RADIAL",
+    "PAD_ROW",
+    "PAD_COLUMN",
+    "MARGIN_TOP",
+    "MARGIN_BOTTOM",
+    "MARGIN_LEFT",
+    "MARGIN_RIGHT",
+    "BG_GRAD",
+    "BG_GRAD_DIR",
+    "BG_MAIN_OPA",
+    "BG_GRAD_OPA",
+    "BG_GRAD_COLOR",
+    "BG_MAIN_STOP",
+    "BG_GRAD_STOP",
+    "BG_IMAGE_SRC",
+    "BG_IMAGE_OPA",
+    "BG_IMAGE_RECOLOR_OPA",
+    "BG_IMAGE_TILED",
+    "BG_IMAGE_RECOLOR",
+    "BORDER_WIDTH",
+    "BORDER_COLOR",
+    "BORDER_OPA",
+    "BORDER_POST",
+    "BORDER_SIDE",
+    "OUTLINE_WIDTH",
+    "OUTLINE_COLOR",
+    "OUTLINE_OPA",
+    "OUTLINE_PAD",
+    "BG_OPA",
+    "BG_COLOR",
+    "SHADOW_WIDTH",
+    "LINE_WIDTH",
+    "ARC_WIDTH",
+    "TEXT_FONT",
+    "IMAGE_RECOLOR_OPA",
+    "IMAGE_OPA",
+    "SHADOW_OPA",
+    "LINE_OPA",
+    "ARC_OPA",
+    "TEXT_OPA",
+    "SHADOW_COLOR",
+    "IMAGE_RECOLOR",
+    "LINE_COLOR",
+    "ARC_COLOR",
+    "TEXT_COLOR",
+    "ARC_IMAGE_SRC",
+    "SHADOW_OFFSET_X",
+    "SHADOW_OFFSET_Y",
+    "SHADOW_SPREAD",
+    "LINE_DASH_WIDTH",
+    "TEXT_ALIGN",
+    "TEXT_LETTER_SPACE",
+    "TEXT_LINE_SPACE",
+    "LINE_DASH_GAP",
+    "LINE_ROUNDED",
+    "IMAGE_COLORKEY",
+    "TEXT_OUTLINE_STROKE_WIDTH",
+    "TEXT_OUTLINE_STROKE_OPA",
+    "TEXT_OUTLINE_STROKE_COLOR",
+    "TEXT_DECOR",
+    "ARC_ROUNDED",
+    "OPA",
+    "OPA_LAYERED",
+    "COLOR_FILTER_DSC",
+    "COLOR_FILTER_OPA",
+    "ANIM",
+    "ANIM_DURATION",
+    "TRANSITION",
+    "RADIUS",
+    "BITMAP_MASK_SRC",
+    "BLEND_MODE",
+    "ROTARY_SENSITIVITY",
+    "TRANSLATE_RADIAL",
+    "CLIP_CORNER",
+    "BASE_DIR",
+    "RECOLOR",
+    "RECOLOR_OPA",
+    "LAYOUT",
+    "BLUR_RADIUS",
+    "BLUR_BACKDROP",
+    "BLUR_QUALITY",
+    "DROP_SHADOW_RADIUS",
+    "DROP_SHADOW_OFFSET_X",
+    "DROP_SHADOW_OFFSET_Y",
+    "DROP_SHADOW_COLOR",
+    "DROP_SHADOW_OPA",
+    "DROP_SHADOW_QUALITY",
+    "TRANSFORM_SCALE_X",
+    "TRANSFORM_SCALE_Y",
+    "TRANSFORM_PIVOT_X",
+    "TRANSFORM_PIVOT_Y",
+    "TRANSFORM_ROTATION",
+    "TRANSFORM_SKEW_X",
+    "TRANSFORM_SKEW_Y",
+    "FLEX_FLOW",
+    "FLEX_MAIN_PLACE",
+    "FLEX_CROSS_PLACE",
+    "FLEX_TRACK_PLACE",
+    "FLEX_GROW",
+    "GRID_COLUMN_DSC_ARRAY",
+    "GRID_ROW_DSC_ARRAY",
+    "GRID_COLUMN_ALIGN",
+    "GRID_ROW_ALIGN",
+    "GRID_CELL_COLUMN_POS",
+    "GRID_CELL_COLUMN_SPAN",
+    "GRID_CELL_X_ALIGN",
+    "GRID_CELL_ROW_POS",
+    "GRID_CELL_ROW_SPAN",
+    "GRID_CELL_Y_ALIGN",
+    "LAST_BUILT_IN_PROP",
+    "NUM_BUILT_IN_PROPS",
+    "PROP_ANY",
+    "PROP_CONST",
+    NULL
+};
+
+static PyObject *py_lv_LV_STYLE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_STYLE_members);
+}
+
+static PyMethodDef py_lv_LV_STYLE_methods[] = {
+    {"__dir__", py_lv_LV_STYLE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_STYLE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.STYLE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_STYLE_getattro,
+    .tp_methods = py_lv_LV_STYLE_methods,
     .tp_doc = "LVGL STYLE enum namespace",
 };
 
@@ -490,15 +818,31 @@ static PyObject *py_lv_LV_RESULT_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "INVALID") == 0) return PyLong_FromLong(LV_RESULT_INVALID);
     if (strcmp(attr, "OK") == 0) return PyLong_FromLong(LV_RESULT_OK);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.RESULT' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_RESULT_members[] = {
+    "INVALID",
+    "OK",
+    NULL
+};
+
+static PyObject *py_lv_LV_RESULT_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_RESULT_members);
+}
+
+static PyMethodDef py_lv_LV_RESULT_methods[] = {
+    {"__dir__", py_lv_LV_RESULT_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_RESULT_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.RESULT",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_RESULT_getattro,
+    .tp_methods = py_lv_LV_RESULT_methods,
     .tp_doc = "LVGL RESULT enum namespace",
 };
 
@@ -518,15 +862,31 @@ static PyObject *py_lv_LV_RB_COLOR_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "RED") == 0) return PyLong_FromLong(LV_RB_COLOR_RED);
     if (strcmp(attr, "BLACK") == 0) return PyLong_FromLong(LV_RB_COLOR_BLACK);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.RB_COLOR' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_RB_COLOR_members[] = {
+    "RED",
+    "BLACK",
+    NULL
+};
+
+static PyObject *py_lv_LV_RB_COLOR_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_RB_COLOR_members);
+}
+
+static PyMethodDef py_lv_LV_RB_COLOR_methods[] = {
+    {"__dir__", py_lv_LV_RB_COLOR_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_RB_COLOR_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.RB_COLOR",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_RB_COLOR_getattro,
+    .tp_methods = py_lv_LV_RB_COLOR_methods,
     .tp_doc = "LVGL RB_COLOR enum namespace",
 };
 
@@ -566,15 +926,51 @@ static PyObject *py_lv_LV_ALIGN_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "OUT_RIGHT_MID") == 0) return PyLong_FromLong(LV_ALIGN_OUT_RIGHT_MID);
     if (strcmp(attr, "OUT_RIGHT_BOTTOM") == 0) return PyLong_FromLong(LV_ALIGN_OUT_RIGHT_BOTTOM);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ALIGN' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ALIGN_members[] = {
+    "DEFAULT",
+    "TOP_LEFT",
+    "TOP_MID",
+    "TOP_RIGHT",
+    "BOTTOM_LEFT",
+    "BOTTOM_MID",
+    "BOTTOM_RIGHT",
+    "LEFT_MID",
+    "RIGHT_MID",
+    "CENTER",
+    "OUT_TOP_LEFT",
+    "OUT_TOP_MID",
+    "OUT_TOP_RIGHT",
+    "OUT_BOTTOM_LEFT",
+    "OUT_BOTTOM_MID",
+    "OUT_BOTTOM_RIGHT",
+    "OUT_LEFT_TOP",
+    "OUT_LEFT_MID",
+    "OUT_LEFT_BOTTOM",
+    "OUT_RIGHT_TOP",
+    "OUT_RIGHT_MID",
+    "OUT_RIGHT_BOTTOM",
+    NULL
+};
+
+static PyObject *py_lv_LV_ALIGN_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ALIGN_members);
+}
+
+static PyMethodDef py_lv_LV_ALIGN_methods[] = {
+    {"__dir__", py_lv_LV_ALIGN_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ALIGN_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ALIGN",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ALIGN_getattro,
+    .tp_methods = py_lv_LV_ALIGN_methods,
     .tp_doc = "LVGL ALIGN enum namespace",
 };
 
@@ -600,15 +996,37 @@ static PyObject *py_lv_LV_DIR_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "VER") == 0) return PyLong_FromLong(LV_DIR_VER);
     if (strcmp(attr, "ALL") == 0) return PyLong_FromLong(LV_DIR_ALL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DIR' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DIR_members[] = {
+    "NONE",
+    "LEFT",
+    "RIGHT",
+    "TOP",
+    "BOTTOM",
+    "HOR",
+    "VER",
+    "ALL",
+    NULL
+};
+
+static PyObject *py_lv_LV_DIR_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DIR_members);
+}
+
+static PyMethodDef py_lv_LV_DIR_methods[] = {
+    {"__dir__", py_lv_LV_DIR_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DIR_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DIR",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DIR_getattro,
+    .tp_methods = py_lv_LV_DIR_methods,
     .tp_doc = "LVGL DIR enum namespace",
 };
 
@@ -671,15 +1089,74 @@ static PyObject *py_lv_LV_COLOR_FORMAT_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NATIVE") == 0) return PyLong_FromLong(LV_COLOR_FORMAT_NATIVE);
     if (strcmp(attr, "NATIVE_WITH_ALPHA") == 0) return PyLong_FromLong(LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.COLOR_FORMAT' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_COLOR_FORMAT_members[] = {
+    "UNKNOWN",
+    "RAW",
+    "RAW_ALPHA",
+    "L8",
+    "I1",
+    "I2",
+    "I4",
+    "I8",
+    "A8",
+    "RGB565",
+    "ARGB8565",
+    "RGB565A8",
+    "AL88",
+    "RGB565_SWAPPED",
+    "RGB888",
+    "ARGB8888",
+    "XRGB8888",
+    "ARGB8888_PREMULTIPLIED",
+    "A1",
+    "A2",
+    "A4",
+    "ARGB1555",
+    "ARGB4444",
+    "ARGB2222",
+    "YUV_START",
+    "I420",
+    "I422",
+    "I444",
+    "I400",
+    "NV21",
+    "NV12",
+    "YUY2",
+    "UYVY",
+    "YUV_END",
+    "PROPRIETARY_START",
+    "NEMA_TSC_START",
+    "NEMA_TSC4",
+    "NEMA_TSC6",
+    "NEMA_TSC6A",
+    "NEMA_TSC6AP",
+    "NEMA_TSC12",
+    "NEMA_TSC12A",
+    "NEMA_TSC_END",
+    "NATIVE",
+    "NATIVE_WITH_ALPHA",
+    NULL
+};
+
+static PyObject *py_lv_LV_COLOR_FORMAT_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_COLOR_FORMAT_members);
+}
+
+static PyMethodDef py_lv_LV_COLOR_FORMAT_methods[] = {
+    {"__dir__", py_lv_LV_COLOR_FORMAT_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_COLOR_FORMAT_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.COLOR_FORMAT",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_COLOR_FORMAT_getattro,
+    .tp_methods = py_lv_LV_COLOR_FORMAT_methods,
     .tp_doc = "LVGL COLOR_FORMAT enum namespace",
 };
 
@@ -718,15 +1195,50 @@ static PyObject *py_lv_LV_PALETTE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "LAST") == 0) return PyLong_FromLong(LV_PALETTE_LAST);
     if (strcmp(attr, "NONE") == 0) return PyLong_FromLong(LV_PALETTE_NONE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.PALETTE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_PALETTE_members[] = {
+    "RED",
+    "PINK",
+    "PURPLE",
+    "DEEP_PURPLE",
+    "INDIGO",
+    "BLUE",
+    "LIGHT_BLUE",
+    "CYAN",
+    "TEAL",
+    "GREEN",
+    "LIGHT_GREEN",
+    "LIME",
+    "YELLOW",
+    "AMBER",
+    "ORANGE",
+    "DEEP_ORANGE",
+    "BROWN",
+    "BLUE_GREY",
+    "GREY",
+    "LAST",
+    "NONE",
+    NULL
+};
+
+static PyObject *py_lv_LV_PALETTE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_PALETTE_members);
+}
+
+static PyMethodDef py_lv_LV_PALETTE_methods[] = {
+    {"__dir__", py_lv_LV_PALETTE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_PALETTE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.PALETTE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_PALETTE_getattro,
+    .tp_methods = py_lv_LV_PALETTE_methods,
     .tp_doc = "LVGL PALETTE enum namespace",
 };
 
@@ -757,15 +1269,42 @@ static PyObject *py_lv_LV_IMAGE_FLAGS_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "USER7") == 0) return PyLong_FromLong(LV_IMAGE_FLAGS_USER7);
     if (strcmp(attr, "USER8") == 0) return PyLong_FromLong(LV_IMAGE_FLAGS_USER8);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.IMAGE_FLAGS' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_IMAGE_FLAGS_members[] = {
+    "PREMULTIPLIED",
+    "COMPRESSED",
+    "ALLOCATED",
+    "MODIFIABLE",
+    "CUSTOM_DRAW",
+    "USER1",
+    "USER2",
+    "USER3",
+    "USER4",
+    "USER5",
+    "USER6",
+    "USER7",
+    "USER8",
+    NULL
+};
+
+static PyObject *py_lv_LV_IMAGE_FLAGS_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_IMAGE_FLAGS_members);
+}
+
+static PyMethodDef py_lv_LV_IMAGE_FLAGS_methods[] = {
+    {"__dir__", py_lv_LV_IMAGE_FLAGS_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_IMAGE_FLAGS_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.IMAGE_FLAGS",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_IMAGE_FLAGS_getattro,
+    .tp_methods = py_lv_LV_IMAGE_FLAGS_methods,
     .tp_doc = "LVGL IMAGE_FLAGS enum namespace",
 };
 
@@ -786,15 +1325,32 @@ static PyObject *py_lv_LV_IMAGE_COMPRESS_getattro(PyObject *self, PyObject *name
     if (strcmp(attr, "RLE") == 0) return PyLong_FromLong(LV_IMAGE_COMPRESS_RLE);
     if (strcmp(attr, "LZ4") == 0) return PyLong_FromLong(LV_IMAGE_COMPRESS_LZ4);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.IMAGE_COMPRESS' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_IMAGE_COMPRESS_members[] = {
+    "NONE",
+    "RLE",
+    "LZ4",
+    NULL
+};
+
+static PyObject *py_lv_LV_IMAGE_COMPRESS_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_IMAGE_COMPRESS_members);
+}
+
+static PyMethodDef py_lv_LV_IMAGE_COMPRESS_methods[] = {
+    {"__dir__", py_lv_LV_IMAGE_COMPRESS_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_IMAGE_COMPRESS_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.IMAGE_COMPRESS",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_IMAGE_COMPRESS_getattro,
+    .tp_methods = py_lv_LV_IMAGE_COMPRESS_methods,
     .tp_doc = "LVGL IMAGE_COMPRESS enum namespace",
 };
 
@@ -822,15 +1378,39 @@ static PyObject *py_lv_LV_FONT_GLYPH_FORMAT_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "SVG") == 0) return PyLong_FromLong(LV_FONT_GLYPH_FORMAT_SVG);
     if (strcmp(attr, "CUSTOM") == 0) return PyLong_FromLong(LV_FONT_GLYPH_FORMAT_CUSTOM);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FONT_GLYPH_FORMAT' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FONT_GLYPH_FORMAT_members[] = {
+    "NONE",
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A8",
+    "IMAGE",
+    "VECTOR",
+    "SVG",
+    "CUSTOM",
+    NULL
+};
+
+static PyObject *py_lv_LV_FONT_GLYPH_FORMAT_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FONT_GLYPH_FORMAT_members);
+}
+
+static PyMethodDef py_lv_LV_FONT_GLYPH_FORMAT_methods[] = {
+    {"__dir__", py_lv_LV_FONT_GLYPH_FORMAT_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FONT_GLYPH_FORMAT_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FONT_GLYPH_FORMAT",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FONT_GLYPH_FORMAT_getattro,
+    .tp_methods = py_lv_LV_FONT_GLYPH_FORMAT_methods,
     .tp_doc = "LVGL FONT_GLYPH_FORMAT enum namespace",
 };
 
@@ -852,15 +1432,33 @@ static PyObject *py_lv_LV_FONT_SUBPX_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "VER") == 0) return PyLong_FromLong(LV_FONT_SUBPX_VER);
     if (strcmp(attr, "BOTH") == 0) return PyLong_FromLong(LV_FONT_SUBPX_BOTH);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FONT_SUBPX' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FONT_SUBPX_members[] = {
+    "NONE",
+    "HOR",
+    "VER",
+    "BOTH",
+    NULL
+};
+
+static PyObject *py_lv_LV_FONT_SUBPX_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FONT_SUBPX_members);
+}
+
+static PyMethodDef py_lv_LV_FONT_SUBPX_methods[] = {
+    {"__dir__", py_lv_LV_FONT_SUBPX_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FONT_SUBPX_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FONT_SUBPX",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FONT_SUBPX_getattro,
+    .tp_methods = py_lv_LV_FONT_SUBPX_methods,
     .tp_doc = "LVGL FONT_SUBPX enum namespace",
 };
 
@@ -880,15 +1478,31 @@ static PyObject *py_lv_LV_FONT_KERNING_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NORMAL") == 0) return PyLong_FromLong(LV_FONT_KERNING_NORMAL);
     if (strcmp(attr, "NONE") == 0) return PyLong_FromLong(LV_FONT_KERNING_NONE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FONT_KERNING' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FONT_KERNING_members[] = {
+    "NORMAL",
+    "NONE",
+    NULL
+};
+
+static PyObject *py_lv_LV_FONT_KERNING_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FONT_KERNING_members);
+}
+
+static PyMethodDef py_lv_LV_FONT_KERNING_methods[] = {
+    {"__dir__", py_lv_LV_FONT_KERNING_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FONT_KERNING_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FONT_KERNING",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FONT_KERNING_getattro,
+    .tp_methods = py_lv_LV_FONT_KERNING_methods,
     .tp_doc = "LVGL FONT_KERNING enum namespace",
 };
 
@@ -911,15 +1525,34 @@ static PyObject *py_lv_LV_TEXT_FLAG_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "BREAK_ALL") == 0) return PyLong_FromLong(LV_TEXT_FLAG_BREAK_ALL);
     if (strcmp(attr, "RECOLOR") == 0) return PyLong_FromLong(LV_TEXT_FLAG_RECOLOR);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.TEXT_FLAG' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_TEXT_FLAG_members[] = {
+    "NONE",
+    "EXPAND",
+    "FIT",
+    "BREAK_ALL",
+    "RECOLOR",
+    NULL
+};
+
+static PyObject *py_lv_LV_TEXT_FLAG_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_TEXT_FLAG_members);
+}
+
+static PyMethodDef py_lv_LV_TEXT_FLAG_methods[] = {
+    {"__dir__", py_lv_LV_TEXT_FLAG_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_TEXT_FLAG_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.TEXT_FLAG",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_TEXT_FLAG_getattro,
+    .tp_methods = py_lv_LV_TEXT_FLAG_methods,
     .tp_doc = "LVGL TEXT_FLAG enum namespace",
 };
 
@@ -941,15 +1574,33 @@ static PyObject *py_lv_LV_TEXT_ALIGN_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "CENTER") == 0) return PyLong_FromLong(LV_TEXT_ALIGN_CENTER);
     if (strcmp(attr, "RIGHT") == 0) return PyLong_FromLong(LV_TEXT_ALIGN_RIGHT);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.TEXT_ALIGN' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_TEXT_ALIGN_members[] = {
+    "AUTO",
+    "LEFT",
+    "CENTER",
+    "RIGHT",
+    NULL
+};
+
+static PyObject *py_lv_LV_TEXT_ALIGN_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_TEXT_ALIGN_members);
+}
+
+static PyMethodDef py_lv_LV_TEXT_ALIGN_methods[] = {
+    {"__dir__", py_lv_LV_TEXT_ALIGN_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_TEXT_ALIGN_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.TEXT_ALIGN",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_TEXT_ALIGN_getattro,
+    .tp_methods = py_lv_LV_TEXT_ALIGN_methods,
     .tp_doc = "LVGL TEXT_ALIGN enum namespace",
 };
 
@@ -972,15 +1623,34 @@ static PyObject *py_lv_LV_BASE_DIR_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NEUTRAL") == 0) return PyLong_FromLong(LV_BASE_DIR_NEUTRAL);
     if (strcmp(attr, "WEAK") == 0) return PyLong_FromLong(LV_BASE_DIR_WEAK);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BASE_DIR' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BASE_DIR_members[] = {
+    "LTR",
+    "RTL",
+    "AUTO",
+    "NEUTRAL",
+    "WEAK",
+    NULL
+};
+
+static PyObject *py_lv_LV_BASE_DIR_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BASE_DIR_members);
+}
+
+static PyMethodDef py_lv_LV_BASE_DIR_methods[] = {
+    {"__dir__", py_lv_LV_BASE_DIR_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BASE_DIR_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BASE_DIR",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BASE_DIR_getattro,
+    .tp_methods = py_lv_LV_BASE_DIR_methods,
     .tp_doc = "LVGL BASE_DIR enum namespace",
 };
 
@@ -1004,15 +1674,35 @@ static PyObject *py_lv_LV_GRAD_DIR_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "RADIAL") == 0) return PyLong_FromLong(LV_GRAD_DIR_RADIAL);
     if (strcmp(attr, "CONICAL") == 0) return PyLong_FromLong(LV_GRAD_DIR_CONICAL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.GRAD_DIR' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_GRAD_DIR_members[] = {
+    "NONE",
+    "VER",
+    "HOR",
+    "LINEAR",
+    "RADIAL",
+    "CONICAL",
+    NULL
+};
+
+static PyObject *py_lv_LV_GRAD_DIR_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_GRAD_DIR_members);
+}
+
+static PyMethodDef py_lv_LV_GRAD_DIR_methods[] = {
+    {"__dir__", py_lv_LV_GRAD_DIR_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_GRAD_DIR_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.GRAD_DIR",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_GRAD_DIR_getattro,
+    .tp_methods = py_lv_LV_GRAD_DIR_methods,
     .tp_doc = "LVGL GRAD_DIR enum namespace",
 };
 
@@ -1033,15 +1723,32 @@ static PyObject *py_lv_LV_GRAD_EXTEND_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "REPEAT") == 0) return PyLong_FromLong(LV_GRAD_EXTEND_REPEAT);
     if (strcmp(attr, "REFLECT") == 0) return PyLong_FromLong(LV_GRAD_EXTEND_REFLECT);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.GRAD_EXTEND' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_GRAD_EXTEND_members[] = {
+    "PAD",
+    "REPEAT",
+    "REFLECT",
+    NULL
+};
+
+static PyObject *py_lv_LV_GRAD_EXTEND_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_GRAD_EXTEND_members);
+}
+
+static PyMethodDef py_lv_LV_GRAD_EXTEND_methods[] = {
+    {"__dir__", py_lv_LV_GRAD_EXTEND_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_GRAD_EXTEND_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.GRAD_EXTEND",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_GRAD_EXTEND_getattro,
+    .tp_methods = py_lv_LV_GRAD_EXTEND_methods,
     .tp_doc = "LVGL GRAD_EXTEND enum namespace",
 };
 
@@ -1063,15 +1770,33 @@ static PyObject *py_lv_LV_LAYOUT_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "GRID") == 0) return PyLong_FromLong(LV_LAYOUT_GRID);
     if (strcmp(attr, "LAST") == 0) return PyLong_FromLong(LV_LAYOUT_LAST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.LAYOUT' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_LAYOUT_members[] = {
+    "NONE",
+    "FLEX",
+    "GRID",
+    "LAST",
+    NULL
+};
+
+static PyObject *py_lv_LV_LAYOUT_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_LAYOUT_members);
+}
+
+static PyMethodDef py_lv_LV_LAYOUT_methods[] = {
+    {"__dir__", py_lv_LV_LAYOUT_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_LAYOUT_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.LAYOUT",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_LAYOUT_getattro,
+    .tp_methods = py_lv_LV_LAYOUT_methods,
     .tp_doc = "LVGL LAYOUT enum namespace",
 };
 
@@ -1095,15 +1820,35 @@ static PyObject *py_lv_LV_FLEX_ALIGN_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SPACE_AROUND") == 0) return PyLong_FromLong(LV_FLEX_ALIGN_SPACE_AROUND);
     if (strcmp(attr, "SPACE_BETWEEN") == 0) return PyLong_FromLong(LV_FLEX_ALIGN_SPACE_BETWEEN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FLEX_ALIGN' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FLEX_ALIGN_members[] = {
+    "START",
+    "END",
+    "CENTER",
+    "SPACE_EVENLY",
+    "SPACE_AROUND",
+    "SPACE_BETWEEN",
+    NULL
+};
+
+static PyObject *py_lv_LV_FLEX_ALIGN_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FLEX_ALIGN_members);
+}
+
+static PyMethodDef py_lv_LV_FLEX_ALIGN_methods[] = {
+    {"__dir__", py_lv_LV_FLEX_ALIGN_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FLEX_ALIGN_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FLEX_ALIGN",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FLEX_ALIGN_getattro,
+    .tp_methods = py_lv_LV_FLEX_ALIGN_methods,
     .tp_doc = "LVGL FLEX_ALIGN enum namespace",
 };
 
@@ -1129,15 +1874,37 @@ static PyObject *py_lv_LV_FLEX_FLOW_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "COLUMN_REVERSE") == 0) return PyLong_FromLong(LV_FLEX_FLOW_COLUMN_REVERSE);
     if (strcmp(attr, "COLUMN_WRAP_REVERSE") == 0) return PyLong_FromLong(LV_FLEX_FLOW_COLUMN_WRAP_REVERSE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FLEX_FLOW' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FLEX_FLOW_members[] = {
+    "ROW",
+    "COLUMN",
+    "ROW_WRAP",
+    "ROW_REVERSE",
+    "ROW_WRAP_REVERSE",
+    "COLUMN_WRAP",
+    "COLUMN_REVERSE",
+    "COLUMN_WRAP_REVERSE",
+    NULL
+};
+
+static PyObject *py_lv_LV_FLEX_FLOW_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FLEX_FLOW_members);
+}
+
+static PyMethodDef py_lv_LV_FLEX_FLOW_methods[] = {
+    {"__dir__", py_lv_LV_FLEX_FLOW_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FLEX_FLOW_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FLEX_FLOW",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FLEX_FLOW_getattro,
+    .tp_methods = py_lv_LV_FLEX_FLOW_methods,
     .tp_doc = "LVGL FLEX_FLOW enum namespace",
 };
 
@@ -1162,15 +1929,36 @@ static PyObject *py_lv_LV_GRID_ALIGN_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SPACE_AROUND") == 0) return PyLong_FromLong(LV_GRID_ALIGN_SPACE_AROUND);
     if (strcmp(attr, "SPACE_BETWEEN") == 0) return PyLong_FromLong(LV_GRID_ALIGN_SPACE_BETWEEN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.GRID_ALIGN' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_GRID_ALIGN_members[] = {
+    "START",
+    "CENTER",
+    "END",
+    "STRETCH",
+    "SPACE_EVENLY",
+    "SPACE_AROUND",
+    "SPACE_BETWEEN",
+    NULL
+};
+
+static PyObject *py_lv_LV_GRID_ALIGN_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_GRID_ALIGN_members);
+}
+
+static PyMethodDef py_lv_LV_GRID_ALIGN_methods[] = {
+    {"__dir__", py_lv_LV_GRID_ALIGN_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_GRID_ALIGN_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.GRID_ALIGN",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_GRID_ALIGN_getattro,
+    .tp_methods = py_lv_LV_GRID_ALIGN_methods,
     .tp_doc = "LVGL GRID_ALIGN enum namespace",
 };
 
@@ -1193,15 +1981,34 @@ static PyObject *py_lv_LV_BLEND_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "MULTIPLY") == 0) return PyLong_FromLong(LV_BLEND_MODE_MULTIPLY);
     if (strcmp(attr, "DIFFERENCE") == 0) return PyLong_FromLong(LV_BLEND_MODE_DIFFERENCE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BLEND_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BLEND_MODE_members[] = {
+    "NORMAL",
+    "ADDITIVE",
+    "SUBTRACTIVE",
+    "MULTIPLY",
+    "DIFFERENCE",
+    NULL
+};
+
+static PyObject *py_lv_LV_BLEND_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BLEND_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_BLEND_MODE_methods[] = {
+    {"__dir__", py_lv_LV_BLEND_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BLEND_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BLEND_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BLEND_MODE_getattro,
+    .tp_methods = py_lv_LV_BLEND_MODE_methods,
     .tp_doc = "LVGL BLEND_MODE enum namespace",
 };
 
@@ -1222,15 +2029,32 @@ static PyObject *py_lv_LV_TEXT_DECOR_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "UNDERLINE") == 0) return PyLong_FromLong(LV_TEXT_DECOR_UNDERLINE);
     if (strcmp(attr, "STRIKETHROUGH") == 0) return PyLong_FromLong(LV_TEXT_DECOR_STRIKETHROUGH);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.TEXT_DECOR' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_TEXT_DECOR_members[] = {
+    "NONE",
+    "UNDERLINE",
+    "STRIKETHROUGH",
+    NULL
+};
+
+static PyObject *py_lv_LV_TEXT_DECOR_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_TEXT_DECOR_members);
+}
+
+static PyMethodDef py_lv_LV_TEXT_DECOR_methods[] = {
+    {"__dir__", py_lv_LV_TEXT_DECOR_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_TEXT_DECOR_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.TEXT_DECOR",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_TEXT_DECOR_getattro,
+    .tp_methods = py_lv_LV_TEXT_DECOR_methods,
     .tp_doc = "LVGL TEXT_DECOR enum namespace",
 };
 
@@ -1255,15 +2079,36 @@ static PyObject *py_lv_LV_BORDER_SIDE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "FULL") == 0) return PyLong_FromLong(LV_BORDER_SIDE_FULL);
     if (strcmp(attr, "INTERNAL") == 0) return PyLong_FromLong(LV_BORDER_SIDE_INTERNAL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BORDER_SIDE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BORDER_SIDE_members[] = {
+    "NONE",
+    "BOTTOM",
+    "TOP",
+    "LEFT",
+    "RIGHT",
+    "FULL",
+    "INTERNAL",
+    NULL
+};
+
+static PyObject *py_lv_LV_BORDER_SIDE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BORDER_SIDE_members);
+}
+
+static PyMethodDef py_lv_LV_BORDER_SIDE_methods[] = {
+    {"__dir__", py_lv_LV_BORDER_SIDE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BORDER_SIDE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BORDER_SIDE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BORDER_SIDE_getattro,
+    .tp_methods = py_lv_LV_BORDER_SIDE_methods,
     .tp_doc = "LVGL BORDER_SIDE enum namespace",
 };
 
@@ -1284,15 +2129,32 @@ static PyObject *py_lv_LV_BLUR_QUALITY_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SPEED") == 0) return PyLong_FromLong(LV_BLUR_QUALITY_SPEED);
     if (strcmp(attr, "PRECISION") == 0) return PyLong_FromLong(LV_BLUR_QUALITY_PRECISION);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BLUR_QUALITY' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BLUR_QUALITY_members[] = {
+    "AUTO",
+    "SPEED",
+    "PRECISION",
+    NULL
+};
+
+static PyObject *py_lv_LV_BLUR_QUALITY_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BLUR_QUALITY_members);
+}
+
+static PyMethodDef py_lv_LV_BLUR_QUALITY_methods[] = {
+    {"__dir__", py_lv_LV_BLUR_QUALITY_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BLUR_QUALITY_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BLUR_QUALITY",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BLUR_QUALITY_getattro,
+    .tp_methods = py_lv_LV_BLUR_QUALITY_methods,
     .tp_doc = "LVGL BLUR_QUALITY enum namespace",
 };
 
@@ -1312,15 +2174,31 @@ static PyObject *py_lv_LV_STYLE_RES_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NOT_FOUND") == 0) return PyLong_FromLong(LV_STYLE_RES_NOT_FOUND);
     if (strcmp(attr, "FOUND") == 0) return PyLong_FromLong(LV_STYLE_RES_FOUND);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.STYLE_RES' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_STYLE_RES_members[] = {
+    "NOT_FOUND",
+    "FOUND",
+    NULL
+};
+
+static PyObject *py_lv_LV_STYLE_RES_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_STYLE_RES_members);
+}
+
+static PyMethodDef py_lv_LV_STYLE_RES_methods[] = {
+    {"__dir__", py_lv_LV_STYLE_RES_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_STYLE_RES_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.STYLE_RES",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_STYLE_RES_getattro,
+    .tp_methods = py_lv_LV_STYLE_RES_methods,
     .tp_doc = "LVGL STYLE_RES enum namespace",
 };
 
@@ -1410,15 +2288,101 @@ static PyObject *py_lv_LV_EVENT_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "PREPROCESS") == 0) return PyLong_FromLong(LV_EVENT_PREPROCESS);
     if (strcmp(attr, "MARKED_DELETING") == 0) return PyLong_FromLong(LV_EVENT_MARKED_DELETING);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.EVENT' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_EVENT_members[] = {
+    "ALL",
+    "PRESSED",
+    "PRESSING",
+    "PRESS_LOST",
+    "SHORT_CLICKED",
+    "SINGLE_CLICKED",
+    "DOUBLE_CLICKED",
+    "TRIPLE_CLICKED",
+    "LONG_PRESSED",
+    "LONG_PRESSED_REPEAT",
+    "CLICKED",
+    "RELEASED",
+    "SCROLL_BEGIN",
+    "SCROLL_THROW_BEGIN",
+    "SCROLL_END",
+    "SCROLL",
+    "GESTURE",
+    "KEY",
+    "ROTARY",
+    "FOCUSED",
+    "DEFOCUSED",
+    "LEAVE",
+    "HIT_TEST",
+    "INDEV_RESET",
+    "HOVER_OVER",
+    "HOVER_LEAVE",
+    "COVER_CHECK",
+    "REFR_EXT_DRAW_SIZE",
+    "DRAW_MAIN_BEGIN",
+    "DRAW_MAIN",
+    "DRAW_MAIN_END",
+    "DRAW_POST_BEGIN",
+    "DRAW_POST",
+    "DRAW_POST_END",
+    "DRAW_TASK_ADDED",
+    "VALUE_CHANGED",
+    "INSERT",
+    "REFRESH",
+    "READY",
+    "CANCEL",
+    "STATE_CHANGED",
+    "CREATE",
+    "DELETE",
+    "CHILD_CHANGED",
+    "CHILD_CREATED",
+    "CHILD_DELETED",
+    "SCREEN_UNLOAD_START",
+    "SCREEN_LOAD_START",
+    "SCREEN_LOADED",
+    "SCREEN_UNLOADED",
+    "SIZE_CHANGED",
+    "STYLE_CHANGED",
+    "LAYOUT_CHANGED",
+    "GET_SELF_SIZE",
+    "INVALIDATE_AREA",
+    "RESOLUTION_CHANGED",
+    "COLOR_FORMAT_CHANGED",
+    "REFR_REQUEST",
+    "REFR_START",
+    "REFR_READY",
+    "RENDER_START",
+    "RENDER_READY",
+    "FLUSH_START",
+    "FLUSH_FINISH",
+    "FLUSH_WAIT_START",
+    "FLUSH_WAIT_FINISH",
+    "UPDATE_LAYOUT_COMPLETED",
+    "VSYNC",
+    "VSYNC_REQUEST",
+    "LAST",
+    "PREPROCESS",
+    "MARKED_DELETING",
+    NULL
+};
+
+static PyObject *py_lv_LV_EVENT_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_EVENT_members);
+}
+
+static PyMethodDef py_lv_LV_EVENT_methods[] = {
+    {"__dir__", py_lv_LV_EVENT_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_EVENT_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.EVENT",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_EVENT_getattro,
+    .tp_methods = py_lv_LV_EVENT_methods,
     .tp_doc = "LVGL EVENT enum namespace",
 };
 
@@ -1440,15 +2404,33 @@ static PyObject *py_lv_LV_DISPLAY_ROTATION_getattro(PyObject *self, PyObject *na
     if (strcmp(attr, "_180") == 0) return PyLong_FromLong(LV_DISPLAY_ROTATION_180);
     if (strcmp(attr, "_270") == 0) return PyLong_FromLong(LV_DISPLAY_ROTATION_270);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DISPLAY_ROTATION' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DISPLAY_ROTATION_members[] = {
+    "_0",
+    "_90",
+    "_180",
+    "_270",
+    NULL
+};
+
+static PyObject *py_lv_LV_DISPLAY_ROTATION_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DISPLAY_ROTATION_members);
+}
+
+static PyMethodDef py_lv_LV_DISPLAY_ROTATION_methods[] = {
+    {"__dir__", py_lv_LV_DISPLAY_ROTATION_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DISPLAY_ROTATION_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DISPLAY_ROTATION",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DISPLAY_ROTATION_getattro,
+    .tp_methods = py_lv_LV_DISPLAY_ROTATION_methods,
     .tp_doc = "LVGL DISPLAY_ROTATION enum namespace",
 };
 
@@ -1469,15 +2451,32 @@ static PyObject *py_lv_LV_DISPLAY_RENDER_MODE_getattro(PyObject *self, PyObject 
     if (strcmp(attr, "DIRECT") == 0) return PyLong_FromLong(LV_DISPLAY_RENDER_MODE_DIRECT);
     if (strcmp(attr, "FULL") == 0) return PyLong_FromLong(LV_DISPLAY_RENDER_MODE_FULL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DISPLAY_RENDER_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DISPLAY_RENDER_MODE_members[] = {
+    "PARTIAL",
+    "DIRECT",
+    "FULL",
+    NULL
+};
+
+static PyObject *py_lv_LV_DISPLAY_RENDER_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DISPLAY_RENDER_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_DISPLAY_RENDER_MODE_methods[] = {
+    {"__dir__", py_lv_LV_DISPLAY_RENDER_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DISPLAY_RENDER_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DISPLAY_RENDER_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DISPLAY_RENDER_MODE_getattro,
+    .tp_methods = py_lv_LV_DISPLAY_RENDER_MODE_methods,
     .tp_doc = "LVGL DISPLAY_RENDER_MODE enum namespace",
 };
 
@@ -1511,15 +2510,45 @@ static PyObject *py_lv_LV_SCREEN_LOAD_ANIM_getattro(PyObject *self, PyObject *na
     if (strcmp(attr, "OUT_TOP") == 0) return PyLong_FromLong(LV_SCREEN_LOAD_ANIM_OUT_TOP);
     if (strcmp(attr, "OUT_BOTTOM") == 0) return PyLong_FromLong(LV_SCREEN_LOAD_ANIM_OUT_BOTTOM);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SCREEN_LOAD_ANIM' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SCREEN_LOAD_ANIM_members[] = {
+    "NONE",
+    "OVER_LEFT",
+    "OVER_RIGHT",
+    "OVER_TOP",
+    "OVER_BOTTOM",
+    "MOVE_LEFT",
+    "MOVE_RIGHT",
+    "MOVE_TOP",
+    "MOVE_BOTTOM",
+    "FADE_IN",
+    "FADE_ON",
+    "FADE_OUT",
+    "OUT_LEFT",
+    "OUT_RIGHT",
+    "OUT_TOP",
+    "OUT_BOTTOM",
+    NULL
+};
+
+static PyObject *py_lv_LV_SCREEN_LOAD_ANIM_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SCREEN_LOAD_ANIM_members);
+}
+
+static PyMethodDef py_lv_LV_SCREEN_LOAD_ANIM_methods[] = {
+    {"__dir__", py_lv_LV_SCREEN_LOAD_ANIM_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SCREEN_LOAD_ANIM_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SCREEN_LOAD_ANIM",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SCREEN_LOAD_ANIM_getattro,
+    .tp_methods = py_lv_LV_SCREEN_LOAD_ANIM_methods,
     .tp_doc = "LVGL SCREEN_LOAD_ANIM enum namespace",
 };
 
@@ -1540,15 +2569,32 @@ static PyObject *py_lv_LV_OBJ_TREE_WALK_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SKIP_CHILDREN") == 0) return PyLong_FromLong(LV_OBJ_TREE_WALK_SKIP_CHILDREN);
     if (strcmp(attr, "END") == 0) return PyLong_FromLong(LV_OBJ_TREE_WALK_END);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OBJ_TREE_WALK' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OBJ_TREE_WALK_members[] = {
+    "NEXT",
+    "SKIP_CHILDREN",
+    "END",
+    NULL
+};
+
+static PyObject *py_lv_LV_OBJ_TREE_WALK_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OBJ_TREE_WALK_members);
+}
+
+static PyMethodDef py_lv_LV_OBJ_TREE_WALK_methods[] = {
+    {"__dir__", py_lv_LV_OBJ_TREE_WALK_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OBJ_TREE_WALK_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OBJ_TREE_WALK",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OBJ_TREE_WALK_getattro,
+    .tp_methods = py_lv_LV_OBJ_TREE_WALK_methods,
     .tp_doc = "LVGL OBJ_TREE_WALK enum namespace",
 };
 
@@ -1570,15 +2616,33 @@ static PyObject *py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_getattro(PyObject *self, PyOb
     if (strcmp(attr, "INVERSE") == 0) return PyLong_FromLong(LV_OBJ_POINT_TRANSFORM_FLAG_INVERSE);
     if (strcmp(attr, "INVERSE_RECURSIVE") == 0) return PyLong_FromLong(LV_OBJ_POINT_TRANSFORM_FLAG_INVERSE_RECURSIVE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OBJ_POINT_TRANSFORM_FLAG' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_members[] = {
+    "NONE",
+    "RECURSIVE",
+    "INVERSE",
+    "INVERSE_RECURSIVE",
+    NULL
+};
+
+static PyObject *py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_members);
+}
+
+static PyMethodDef py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_methods[] = {
+    {"__dir__", py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OBJ_POINT_TRANSFORM_FLAG",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_getattro,
+    .tp_methods = py_lv_LV_OBJ_POINT_TRANSFORM_FLAG_methods,
     .tp_doc = "LVGL OBJ_POINT_TRANSFORM_FLAG enum namespace",
 };
 
@@ -1600,15 +2664,33 @@ static PyObject *py_lv_LV_SCROLLBAR_MODE_getattro(PyObject *self, PyObject *name
     if (strcmp(attr, "ACTIVE") == 0) return PyLong_FromLong(LV_SCROLLBAR_MODE_ACTIVE);
     if (strcmp(attr, "AUTO") == 0) return PyLong_FromLong(LV_SCROLLBAR_MODE_AUTO);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SCROLLBAR_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SCROLLBAR_MODE_members[] = {
+    "OFF",
+    "ON",
+    "ACTIVE",
+    "AUTO",
+    NULL
+};
+
+static PyObject *py_lv_LV_SCROLLBAR_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SCROLLBAR_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_SCROLLBAR_MODE_methods[] = {
+    {"__dir__", py_lv_LV_SCROLLBAR_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SCROLLBAR_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SCROLLBAR_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SCROLLBAR_MODE_getattro,
+    .tp_methods = py_lv_LV_SCROLLBAR_MODE_methods,
     .tp_doc = "LVGL SCROLLBAR_MODE enum namespace",
 };
 
@@ -1630,15 +2712,33 @@ static PyObject *py_lv_LV_SCROLL_SNAP_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "END") == 0) return PyLong_FromLong(LV_SCROLL_SNAP_END);
     if (strcmp(attr, "CENTER") == 0) return PyLong_FromLong(LV_SCROLL_SNAP_CENTER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SCROLL_SNAP' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SCROLL_SNAP_members[] = {
+    "NONE",
+    "START",
+    "END",
+    "CENTER",
+    NULL
+};
+
+static PyObject *py_lv_LV_SCROLL_SNAP_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SCROLL_SNAP_members);
+}
+
+static PyMethodDef py_lv_LV_SCROLL_SNAP_methods[] = {
+    {"__dir__", py_lv_LV_SCROLL_SNAP_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SCROLL_SNAP_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SCROLL_SNAP",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SCROLL_SNAP_getattro,
+    .tp_methods = py_lv_LV_SCROLL_SNAP_methods,
     .tp_doc = "LVGL SCROLL_SNAP enum namespace",
 };
 
@@ -1671,15 +2771,44 @@ static PyObject *py_lv_LV_STATE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "USER_4") == 0) return PyLong_FromLong(LV_STATE_USER_4);
     if (strcmp(attr, "ANY") == 0) return PyLong_FromLong(LV_STATE_ANY);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.STATE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_STATE_members[] = {
+    "DEFAULT",
+    "ALT",
+    "CHECKED",
+    "FOCUSED",
+    "FOCUS_KEY",
+    "EDITED",
+    "HOVERED",
+    "PRESSED",
+    "SCROLLED",
+    "DISABLED",
+    "USER_1",
+    "USER_2",
+    "USER_3",
+    "USER_4",
+    "ANY",
+    NULL
+};
+
+static PyObject *py_lv_LV_STATE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_STATE_members);
+}
+
+static PyMethodDef py_lv_LV_STATE_methods[] = {
+    {"__dir__", py_lv_LV_STATE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_STATE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.STATE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_STATE_getattro,
+    .tp_methods = py_lv_LV_STATE_methods,
     .tp_doc = "LVGL STATE enum namespace",
 };
 
@@ -1706,15 +2835,38 @@ static PyObject *py_lv_LV_PART_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "CUSTOM_FIRST") == 0) return PyLong_FromLong(LV_PART_CUSTOM_FIRST);
     if (strcmp(attr, "ANY") == 0) return PyLong_FromLong(LV_PART_ANY);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.PART' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_PART_members[] = {
+    "MAIN",
+    "SCROLLBAR",
+    "INDICATOR",
+    "KNOB",
+    "SELECTED",
+    "ITEMS",
+    "CURSOR",
+    "CUSTOM_FIRST",
+    "ANY",
+    NULL
+};
+
+static PyObject *py_lv_LV_PART_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_PART_members);
+}
+
+static PyMethodDef py_lv_LV_PART_methods[] = {
+    {"__dir__", py_lv_LV_PART_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_PART_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.PART",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_PART_getattro,
+    .tp_methods = py_lv_LV_PART_methods,
     .tp_doc = "LVGL PART enum namespace",
 };
 
@@ -1736,15 +2888,33 @@ static PyObject *py_lv_LV_STYLE_STATE_CMP_getattro(PyObject *self, PyObject *nam
     if (strcmp(attr, "DIFF_DRAW_PAD") == 0) return PyLong_FromLong(LV_STYLE_STATE_CMP_DIFF_DRAW_PAD);
     if (strcmp(attr, "DIFF_LAYOUT") == 0) return PyLong_FromLong(LV_STYLE_STATE_CMP_DIFF_LAYOUT);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.STYLE_STATE_CMP' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_STYLE_STATE_CMP_members[] = {
+    "SAME",
+    "DIFF_REDRAW",
+    "DIFF_DRAW_PAD",
+    "DIFF_LAYOUT",
+    NULL
+};
+
+static PyObject *py_lv_LV_STYLE_STATE_CMP_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_STYLE_STATE_CMP_members);
+}
+
+static PyMethodDef py_lv_LV_STYLE_STATE_CMP_methods[] = {
+    {"__dir__", py_lv_LV_STYLE_STATE_CMP_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_STYLE_STATE_CMP_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.STYLE_STATE_CMP",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_STYLE_STATE_CMP_getattro,
+    .tp_methods = py_lv_LV_STYLE_STATE_CMP_methods,
     .tp_doc = "LVGL STYLE_STATE_CMP enum namespace",
 };
 
@@ -1776,15 +2946,43 @@ static PyObject *py_lv_LV_FS_RES_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "DRIVE_LETTER_ALREADY_USED") == 0) return PyLong_FromLong(LV_FS_RES_DRIVE_LETTER_ALREADY_USED);
     if (strcmp(attr, "UNKNOWN") == 0) return PyLong_FromLong(LV_FS_RES_UNKNOWN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FS_RES' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FS_RES_members[] = {
+    "OK",
+    "HW_ERR",
+    "FS_ERR",
+    "NOT_EX",
+    "FULL",
+    "LOCKED",
+    "DENIED",
+    "BUSY",
+    "TOUT",
+    "NOT_IMP",
+    "OUT_OF_MEM",
+    "INV_PARAM",
+    "DRIVE_LETTER_ALREADY_USED",
+    "UNKNOWN",
+    NULL
+};
+
+static PyObject *py_lv_LV_FS_RES_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FS_RES_members);
+}
+
+static PyMethodDef py_lv_LV_FS_RES_methods[] = {
+    {"__dir__", py_lv_LV_FS_RES_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FS_RES_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FS_RES",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FS_RES_getattro,
+    .tp_methods = py_lv_LV_FS_RES_methods,
     .tp_doc = "LVGL FS_RES enum namespace",
 };
 
@@ -1804,15 +3002,31 @@ static PyObject *py_lv_LV_FS_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "WR") == 0) return PyLong_FromLong(LV_FS_MODE_WR);
     if (strcmp(attr, "RD") == 0) return PyLong_FromLong(LV_FS_MODE_RD);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FS_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FS_MODE_members[] = {
+    "WR",
+    "RD",
+    NULL
+};
+
+static PyObject *py_lv_LV_FS_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FS_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_FS_MODE_methods[] = {
+    {"__dir__", py_lv_LV_FS_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FS_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FS_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FS_MODE_getattro,
+    .tp_methods = py_lv_LV_FS_MODE_methods,
     .tp_doc = "LVGL FS_MODE enum namespace",
 };
 
@@ -1833,15 +3047,32 @@ static PyObject *py_lv_LV_FS_SEEK_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "CUR") == 0) return PyLong_FromLong(LV_FS_SEEK_CUR);
     if (strcmp(attr, "END") == 0) return PyLong_FromLong(LV_FS_SEEK_END);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FS_SEEK' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FS_SEEK_members[] = {
+    "SET",
+    "CUR",
+    "END",
+    NULL
+};
+
+static PyObject *py_lv_LV_FS_SEEK_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FS_SEEK_members);
+}
+
+static PyMethodDef py_lv_LV_FS_SEEK_methods[] = {
+    {"__dir__", py_lv_LV_FS_SEEK_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FS_SEEK_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FS_SEEK",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FS_SEEK_getattro,
+    .tp_methods = py_lv_LV_FS_SEEK_methods,
     .tp_doc = "LVGL FS_SEEK enum namespace",
 };
 
@@ -1863,15 +3094,33 @@ static PyObject *py_lv_LV_IMAGE_SRC_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SYMBOL") == 0) return PyLong_FromLong(LV_IMAGE_SRC_SYMBOL);
     if (strcmp(attr, "UNKNOWN") == 0) return PyLong_FromLong(LV_IMAGE_SRC_UNKNOWN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.IMAGE_SRC' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_IMAGE_SRC_members[] = {
+    "VARIABLE",
+    "FILE",
+    "SYMBOL",
+    "UNKNOWN",
+    NULL
+};
+
+static PyObject *py_lv_LV_IMAGE_SRC_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_IMAGE_SRC_members);
+}
+
+static PyMethodDef py_lv_LV_IMAGE_SRC_methods[] = {
+    {"__dir__", py_lv_LV_IMAGE_SRC_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_IMAGE_SRC_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.IMAGE_SRC",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_IMAGE_SRC_getattro,
+    .tp_methods = py_lv_LV_IMAGE_SRC_methods,
     .tp_doc = "LVGL IMAGE_SRC enum namespace",
 };
 
@@ -1903,15 +3152,43 @@ static PyObject *py_lv_LV_DRAW_TASK_TYPE_getattro(PyObject *self, PyObject *name
     if (strcmp(attr, "MASK_BITMAP") == 0) return PyLong_FromLong(LV_DRAW_TASK_TYPE_MASK_BITMAP);
     if (strcmp(attr, "BLUR") == 0) return PyLong_FromLong(LV_DRAW_TASK_TYPE_BLUR);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DRAW_TASK_TYPE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DRAW_TASK_TYPE_members[] = {
+    "NONE",
+    "FILL",
+    "BORDER",
+    "BOX_SHADOW",
+    "LETTER",
+    "LABEL",
+    "IMAGE",
+    "LAYER",
+    "LINE",
+    "ARC",
+    "TRIANGLE",
+    "MASK_RECTANGLE",
+    "MASK_BITMAP",
+    "BLUR",
+    NULL
+};
+
+static PyObject *py_lv_LV_DRAW_TASK_TYPE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DRAW_TASK_TYPE_members);
+}
+
+static PyMethodDef py_lv_LV_DRAW_TASK_TYPE_methods[] = {
+    {"__dir__", py_lv_LV_DRAW_TASK_TYPE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DRAW_TASK_TYPE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DRAW_TASK_TYPE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DRAW_TASK_TYPE_getattro,
+    .tp_methods = py_lv_LV_DRAW_TASK_TYPE_methods,
     .tp_doc = "LVGL DRAW_TASK_TYPE enum namespace",
 };
 
@@ -1934,15 +3211,34 @@ static PyObject *py_lv_LV_DRAW_TASK_STATE_getattro(PyObject *self, PyObject *nam
     if (strcmp(attr, "IN_PROGRESS") == 0) return PyLong_FromLong(LV_DRAW_TASK_STATE_IN_PROGRESS);
     if (strcmp(attr, "FINISHED") == 0) return PyLong_FromLong(LV_DRAW_TASK_STATE_FINISHED);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DRAW_TASK_STATE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DRAW_TASK_STATE_members[] = {
+    "BLOCKED",
+    "WAITING",
+    "QUEUED",
+    "IN_PROGRESS",
+    "FINISHED",
+    NULL
+};
+
+static PyObject *py_lv_LV_DRAW_TASK_STATE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DRAW_TASK_STATE_members);
+}
+
+static PyMethodDef py_lv_LV_DRAW_TASK_STATE_methods[] = {
+    {"__dir__", py_lv_LV_DRAW_TASK_STATE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DRAW_TASK_STATE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DRAW_TASK_STATE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DRAW_TASK_STATE_getattro,
+    .tp_methods = py_lv_LV_DRAW_TASK_STATE_methods,
     .tp_doc = "LVGL DRAW_TASK_STATE enum namespace",
 };
 
@@ -1963,15 +3259,32 @@ static PyObject *py_lv_LV_LAYER_TYPE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SIMPLE") == 0) return PyLong_FromLong(LV_LAYER_TYPE_SIMPLE);
     if (strcmp(attr, "TRANSFORM") == 0) return PyLong_FromLong(LV_LAYER_TYPE_TRANSFORM);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.LAYER_TYPE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_LAYER_TYPE_members[] = {
+    "NONE",
+    "SIMPLE",
+    "TRANSFORM",
+    NULL
+};
+
+static PyObject *py_lv_LV_LAYER_TYPE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_LAYER_TYPE_members);
+}
+
+static PyMethodDef py_lv_LV_LAYER_TYPE_methods[] = {
+    {"__dir__", py_lv_LV_LAYER_TYPE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_LAYER_TYPE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.LAYER_TYPE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_LAYER_TYPE_getattro,
+    .tp_methods = py_lv_LV_LAYER_TYPE_methods,
     .tp_doc = "LVGL LAYER_TYPE enum namespace",
 };
 
@@ -1992,15 +3305,32 @@ static PyObject *py_lv_LV_OBJ_CLASS_EDITABLE_getattro(PyObject *self, PyObject *
     if (strcmp(attr, "TRUE") == 0) return PyLong_FromLong(LV_OBJ_CLASS_EDITABLE_TRUE);
     if (strcmp(attr, "FALSE") == 0) return PyLong_FromLong(LV_OBJ_CLASS_EDITABLE_FALSE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OBJ_CLASS_EDITABLE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OBJ_CLASS_EDITABLE_members[] = {
+    "INHERIT",
+    "TRUE",
+    "FALSE",
+    NULL
+};
+
+static PyObject *py_lv_LV_OBJ_CLASS_EDITABLE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OBJ_CLASS_EDITABLE_members);
+}
+
+static PyMethodDef py_lv_LV_OBJ_CLASS_EDITABLE_methods[] = {
+    {"__dir__", py_lv_LV_OBJ_CLASS_EDITABLE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OBJ_CLASS_EDITABLE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OBJ_CLASS_EDITABLE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OBJ_CLASS_EDITABLE_getattro,
+    .tp_methods = py_lv_LV_OBJ_CLASS_EDITABLE_methods,
     .tp_doc = "LVGL OBJ_CLASS_EDITABLE enum namespace",
 };
 
@@ -2021,15 +3351,32 @@ static PyObject *py_lv_LV_OBJ_CLASS_GROUP_DEF_getattro(PyObject *self, PyObject 
     if (strcmp(attr, "TRUE") == 0) return PyLong_FromLong(LV_OBJ_CLASS_GROUP_DEF_TRUE);
     if (strcmp(attr, "FALSE") == 0) return PyLong_FromLong(LV_OBJ_CLASS_GROUP_DEF_FALSE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OBJ_CLASS_GROUP_DEF' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OBJ_CLASS_GROUP_DEF_members[] = {
+    "INHERIT",
+    "TRUE",
+    "FALSE",
+    NULL
+};
+
+static PyObject *py_lv_LV_OBJ_CLASS_GROUP_DEF_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OBJ_CLASS_GROUP_DEF_members);
+}
+
+static PyMethodDef py_lv_LV_OBJ_CLASS_GROUP_DEF_methods[] = {
+    {"__dir__", py_lv_LV_OBJ_CLASS_GROUP_DEF_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OBJ_CLASS_GROUP_DEF_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OBJ_CLASS_GROUP_DEF",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OBJ_CLASS_GROUP_DEF_getattro,
+    .tp_methods = py_lv_LV_OBJ_CLASS_GROUP_DEF_methods,
     .tp_doc = "LVGL OBJ_CLASS_GROUP_DEF enum namespace",
 };
 
@@ -2049,15 +3396,31 @@ static PyObject *py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_getattro(PyObject *self, P
     if (strcmp(attr, "FALSE") == 0) return PyLong_FromLong(LV_OBJ_CLASS_THEME_INHERITABLE_FALSE);
     if (strcmp(attr, "TRUE") == 0) return PyLong_FromLong(LV_OBJ_CLASS_THEME_INHERITABLE_TRUE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OBJ_CLASS_THEME_INHERITABLE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_members[] = {
+    "FALSE",
+    "TRUE",
+    NULL
+};
+
+static PyObject *py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_members);
+}
+
+static PyMethodDef py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_methods[] = {
+    {"__dir__", py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OBJ_CLASS_THEME_INHERITABLE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_getattro,
+    .tp_methods = py_lv_LV_OBJ_CLASS_THEME_INHERITABLE_methods,
     .tp_doc = "LVGL OBJ_CLASS_THEME_INHERITABLE enum namespace",
 };
 
@@ -2087,15 +3450,41 @@ static PyObject *py_lv_LV_KEY_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "HOME") == 0) return PyLong_FromLong(LV_KEY_HOME);
     if (strcmp(attr, "END") == 0) return PyLong_FromLong(LV_KEY_END);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.KEY' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_KEY_members[] = {
+    "UP",
+    "DOWN",
+    "RIGHT",
+    "LEFT",
+    "ESC",
+    "DEL",
+    "BACKSPACE",
+    "ENTER",
+    "NEXT",
+    "PREV",
+    "HOME",
+    "END",
+    NULL
+};
+
+static PyObject *py_lv_LV_KEY_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_KEY_members);
+}
+
+static PyMethodDef py_lv_LV_KEY_methods[] = {
+    {"__dir__", py_lv_LV_KEY_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_KEY_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.KEY",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_KEY_getattro,
+    .tp_methods = py_lv_LV_KEY_methods,
     .tp_doc = "LVGL KEY enum namespace",
 };
 
@@ -2115,15 +3504,31 @@ static PyObject *py_lv_LV_GROUP_REFOCUS_POLICY_getattro(PyObject *self, PyObject
     if (strcmp(attr, "NEXT") == 0) return PyLong_FromLong(LV_GROUP_REFOCUS_POLICY_NEXT);
     if (strcmp(attr, "PREV") == 0) return PyLong_FromLong(LV_GROUP_REFOCUS_POLICY_PREV);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.GROUP_REFOCUS_POLICY' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_GROUP_REFOCUS_POLICY_members[] = {
+    "NEXT",
+    "PREV",
+    NULL
+};
+
+static PyObject *py_lv_LV_GROUP_REFOCUS_POLICY_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_GROUP_REFOCUS_POLICY_members);
+}
+
+static PyMethodDef py_lv_LV_GROUP_REFOCUS_POLICY_methods[] = {
+    {"__dir__", py_lv_LV_GROUP_REFOCUS_POLICY_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_GROUP_REFOCUS_POLICY_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.GROUP_REFOCUS_POLICY",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_GROUP_REFOCUS_POLICY_getattro,
+    .tp_methods = py_lv_LV_GROUP_REFOCUS_POLICY_methods,
     .tp_doc = "LVGL GROUP_REFOCUS_POLICY enum namespace",
 };
 
@@ -2146,15 +3551,34 @@ static PyObject *py_lv_LV_INDEV_TYPE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "BUTTON") == 0) return PyLong_FromLong(LV_INDEV_TYPE_BUTTON);
     if (strcmp(attr, "ENCODER") == 0) return PyLong_FromLong(LV_INDEV_TYPE_ENCODER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.INDEV_TYPE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_INDEV_TYPE_members[] = {
+    "NONE",
+    "POINTER",
+    "KEYPAD",
+    "BUTTON",
+    "ENCODER",
+    NULL
+};
+
+static PyObject *py_lv_LV_INDEV_TYPE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_INDEV_TYPE_members);
+}
+
+static PyMethodDef py_lv_LV_INDEV_TYPE_methods[] = {
+    {"__dir__", py_lv_LV_INDEV_TYPE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_INDEV_TYPE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.INDEV_TYPE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_INDEV_TYPE_getattro,
+    .tp_methods = py_lv_LV_INDEV_TYPE_methods,
     .tp_doc = "LVGL INDEV_TYPE enum namespace",
 };
 
@@ -2174,15 +3598,31 @@ static PyObject *py_lv_LV_INDEV_STATE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "RELEASED") == 0) return PyLong_FromLong(LV_INDEV_STATE_RELEASED);
     if (strcmp(attr, "PRESSED") == 0) return PyLong_FromLong(LV_INDEV_STATE_PRESSED);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.INDEV_STATE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_INDEV_STATE_members[] = {
+    "RELEASED",
+    "PRESSED",
+    NULL
+};
+
+static PyObject *py_lv_LV_INDEV_STATE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_INDEV_STATE_members);
+}
+
+static PyMethodDef py_lv_LV_INDEV_STATE_methods[] = {
+    {"__dir__", py_lv_LV_INDEV_STATE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_INDEV_STATE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.INDEV_STATE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_INDEV_STATE_getattro,
+    .tp_methods = py_lv_LV_INDEV_STATE_methods,
     .tp_doc = "LVGL INDEV_STATE enum namespace",
 };
 
@@ -2203,15 +3643,32 @@ static PyObject *py_lv_LV_INDEV_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "TIMER") == 0) return PyLong_FromLong(LV_INDEV_MODE_TIMER);
     if (strcmp(attr, "EVENT") == 0) return PyLong_FromLong(LV_INDEV_MODE_EVENT);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.INDEV_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_INDEV_MODE_members[] = {
+    "NONE",
+    "TIMER",
+    "EVENT",
+    NULL
+};
+
+static PyObject *py_lv_LV_INDEV_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_INDEV_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_INDEV_MODE_methods[] = {
+    {"__dir__", py_lv_LV_INDEV_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_INDEV_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.INDEV_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_INDEV_MODE_getattro,
+    .tp_methods = py_lv_LV_INDEV_MODE_methods,
     .tp_doc = "LVGL INDEV_MODE enum namespace",
 };
 
@@ -2236,15 +3693,36 @@ static PyObject *py_lv_LV_INDEV_GESTURE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SCROLL") == 0) return PyLong_FromLong(LV_INDEV_GESTURE_SCROLL);
     if (strcmp(attr, "CNT") == 0) return PyLong_FromLong(LV_INDEV_GESTURE_CNT);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.INDEV_GESTURE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_INDEV_GESTURE_members[] = {
+    "NONE",
+    "PINCH",
+    "SWIPE",
+    "ROTATE",
+    "TWO_FINGERS_SWIPE",
+    "SCROLL",
+    "CNT",
+    NULL
+};
+
+static PyObject *py_lv_LV_INDEV_GESTURE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_INDEV_GESTURE_members);
+}
+
+static PyMethodDef py_lv_LV_INDEV_GESTURE_methods[] = {
+    {"__dir__", py_lv_LV_INDEV_GESTURE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_INDEV_GESTURE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.INDEV_GESTURE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_INDEV_GESTURE_getattro,
+    .tp_methods = py_lv_LV_INDEV_GESTURE_methods,
     .tp_doc = "LVGL INDEV_GESTURE enum namespace",
 };
 
@@ -2265,15 +3743,32 @@ static PyObject *py_lv_LV_COVER_RES_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NOT_COVER") == 0) return PyLong_FromLong(LV_COVER_RES_NOT_COVER);
     if (strcmp(attr, "MASKED") == 0) return PyLong_FromLong(LV_COVER_RES_MASKED);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.COVER_RES' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_COVER_RES_members[] = {
+    "COVER",
+    "NOT_COVER",
+    "MASKED",
+    NULL
+};
+
+static PyObject *py_lv_LV_COVER_RES_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_COVER_RES_members);
+}
+
+static PyMethodDef py_lv_LV_COVER_RES_methods[] = {
+    {"__dir__", py_lv_LV_COVER_RES_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_COVER_RES_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.COVER_RES",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_COVER_RES_getattro,
+    .tp_methods = py_lv_LV_COVER_RES_methods,
     .tp_doc = "LVGL COVER_RES enum namespace",
 };
 
@@ -2324,15 +3819,62 @@ static PyObject *py_lv_LV_OBJ_FLAG_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "USER_3") == 0) return PyLong_FromLong(LV_OBJ_FLAG_USER_3);
     if (strcmp(attr, "USER_4") == 0) return PyLong_FromLong(LV_OBJ_FLAG_USER_4);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.OBJ_FLAG' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_OBJ_FLAG_members[] = {
+    "HIDDEN",
+    "CLICKABLE",
+    "CLICK_FOCUSABLE",
+    "CHECKABLE",
+    "SCROLLABLE",
+    "SCROLL_ELASTIC",
+    "SCROLL_MOMENTUM",
+    "SCROLL_ONE",
+    "SCROLL_CHAIN_HOR",
+    "SCROLL_CHAIN_VER",
+    "SCROLL_CHAIN",
+    "SCROLL_ON_FOCUS",
+    "SCROLL_WITH_ARROW",
+    "SNAPPABLE",
+    "PRESS_LOCK",
+    "EVENT_BUBBLE",
+    "GESTURE_BUBBLE",
+    "ADV_HITTEST",
+    "IGNORE_LAYOUT",
+    "FLOATING",
+    "SEND_DRAW_TASK_EVENTS",
+    "OVERFLOW_VISIBLE",
+    "EVENT_TRICKLE",
+    "STATE_TRICKLE",
+    "LAYOUT_1",
+    "LAYOUT_2",
+    "FLEX_IN_NEW_TRACK",
+    "WIDGET_1",
+    "WIDGET_2",
+    "USER_1",
+    "USER_2",
+    "USER_3",
+    "USER_4",
+    NULL
+};
+
+static PyObject *py_lv_LV_OBJ_FLAG_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_OBJ_FLAG_members);
+}
+
+static PyMethodDef py_lv_LV_OBJ_FLAG_methods[] = {
+    {"__dir__", py_lv_LV_OBJ_FLAG_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_OBJ_FLAG_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.OBJ_FLAG",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_OBJ_FLAG_getattro,
+    .tp_methods = py_lv_LV_OBJ_FLAG_methods,
     .tp_doc = "LVGL OBJ_FLAG enum namespace",
 };
 
@@ -2358,15 +3900,37 @@ static PyObject *py_lv_LV_SUBJECT_TYPE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "GROUP") == 0) return PyLong_FromLong(LV_SUBJECT_TYPE_GROUP);
     if (strcmp(attr, "STRING") == 0) return PyLong_FromLong(LV_SUBJECT_TYPE_STRING);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SUBJECT_TYPE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SUBJECT_TYPE_members[] = {
+    "INVALID",
+    "NONE",
+    "INT",
+    "FLOAT",
+    "POINTER",
+    "COLOR",
+    "GROUP",
+    "STRING",
+    NULL
+};
+
+static PyObject *py_lv_LV_SUBJECT_TYPE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SUBJECT_TYPE_members);
+}
+
+static PyMethodDef py_lv_LV_SUBJECT_TYPE_methods[] = {
+    {"__dir__", py_lv_LV_SUBJECT_TYPE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SUBJECT_TYPE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SUBJECT_TYPE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SUBJECT_TYPE_getattro,
+    .tp_methods = py_lv_LV_SUBJECT_TYPE_methods,
     .tp_doc = "LVGL SUBJECT_TYPE enum namespace",
 };
 
@@ -2389,15 +3953,34 @@ static PyObject *py_lv_LV_INDEV_GESTURE_STATE_getattro(PyObject *self, PyObject 
     if (strcmp(attr, "ENDED") == 0) return PyLong_FromLong(LV_INDEV_GESTURE_STATE_ENDED);
     if (strcmp(attr, "CANCELED") == 0) return PyLong_FromLong(LV_INDEV_GESTURE_STATE_CANCELED);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.INDEV_GESTURE_STATE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_INDEV_GESTURE_STATE_members[] = {
+    "NONE",
+    "ONGOING",
+    "RECOGNIZED",
+    "ENDED",
+    "CANCELED",
+    NULL
+};
+
+static PyObject *py_lv_LV_INDEV_GESTURE_STATE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_INDEV_GESTURE_STATE_members);
+}
+
+static PyMethodDef py_lv_LV_INDEV_GESTURE_STATE_methods[] = {
+    {"__dir__", py_lv_LV_INDEV_GESTURE_STATE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_INDEV_GESTURE_STATE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.INDEV_GESTURE_STATE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_INDEV_GESTURE_STATE_getattro,
+    .tp_methods = py_lv_LV_INDEV_GESTURE_STATE_methods,
     .tp_doc = "LVGL INDEV_GESTURE_STATE enum namespace",
 };
 
@@ -2419,15 +4002,33 @@ static PyObject *py_lv_LV_FONT_FMT_TXT_CMAP_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "FORMAT0_TINY") == 0) return PyLong_FromLong(LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY);
     if (strcmp(attr, "SPARSE_TINY") == 0) return PyLong_FromLong(LV_FONT_FMT_TXT_CMAP_SPARSE_TINY);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FONT_FMT_TXT_CMAP' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FONT_FMT_TXT_CMAP_members[] = {
+    "FORMAT0_FULL",
+    "SPARSE_FULL",
+    "FORMAT0_TINY",
+    "SPARSE_TINY",
+    NULL
+};
+
+static PyObject *py_lv_LV_FONT_FMT_TXT_CMAP_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FONT_FMT_TXT_CMAP_members);
+}
+
+static PyMethodDef py_lv_LV_FONT_FMT_TXT_CMAP_methods[] = {
+    {"__dir__", py_lv_LV_FONT_FMT_TXT_CMAP_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FONT_FMT_TXT_CMAP_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FONT_FMT_TXT_CMAP",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FONT_FMT_TXT_CMAP_getattro,
+    .tp_methods = py_lv_LV_FONT_FMT_TXT_CMAP_methods,
     .tp_doc = "LVGL FONT_FMT_TXT_CMAP enum namespace",
 };
 
@@ -2448,15 +4049,32 @@ static PyObject *py_lv_LV_FONT_FMT_TXT_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "COMPRESSED") == 0) return PyLong_FromLong(LV_FONT_FMT_TXT_COMPRESSED);
     if (strcmp(attr, "COMPRESSED_NO_PREFILTER") == 0) return PyLong_FromLong(LV_FONT_FMT_TXT_COMPRESSED_NO_PREFILTER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.FONT_FMT_TXT' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_FONT_FMT_TXT_members[] = {
+    "PLAIN",
+    "COMPRESSED",
+    "COMPRESSED_NO_PREFILTER",
+    NULL
+};
+
+static PyObject *py_lv_LV_FONT_FMT_TXT_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_FONT_FMT_TXT_members);
+}
+
+static PyMethodDef py_lv_LV_FONT_FMT_TXT_methods[] = {
+    {"__dir__", py_lv_LV_FONT_FMT_TXT_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_FONT_FMT_TXT_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.FONT_FMT_TXT",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_FONT_FMT_TXT_getattro,
+    .tp_methods = py_lv_LV_FONT_FMT_TXT_methods,
     .tp_doc = "LVGL FONT_FMT_TXT enum namespace",
 };
 
@@ -2488,15 +4106,43 @@ static PyObject *py_lv_LV_IMAGE_ALIGN_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "CONTAIN") == 0) return PyLong_FromLong(LV_IMAGE_ALIGN_CONTAIN);
     if (strcmp(attr, "COVER") == 0) return PyLong_FromLong(LV_IMAGE_ALIGN_COVER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.IMAGE_ALIGN' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_IMAGE_ALIGN_members[] = {
+    "DEFAULT",
+    "TOP_LEFT",
+    "TOP_MID",
+    "TOP_RIGHT",
+    "BOTTOM_LEFT",
+    "BOTTOM_MID",
+    "BOTTOM_RIGHT",
+    "LEFT_MID",
+    "RIGHT_MID",
+    "CENTER",
+    "STRETCH",
+    "TILE",
+    "CONTAIN",
+    "COVER",
+    NULL
+};
+
+static PyObject *py_lv_LV_IMAGE_ALIGN_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_IMAGE_ALIGN_members);
+}
+
+static PyMethodDef py_lv_LV_IMAGE_ALIGN_methods[] = {
+    {"__dir__", py_lv_LV_IMAGE_ALIGN_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_IMAGE_ALIGN_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.IMAGE_ALIGN",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_IMAGE_ALIGN_getattro,
+    .tp_methods = py_lv_LV_IMAGE_ALIGN_methods,
     .tp_doc = "LVGL IMAGE_ALIGN enum namespace",
 };
 
@@ -2515,15 +4161,30 @@ static PyObject *py_lv_LV_ANIM_IMAGE_PART_getattro(PyObject *self, PyObject *nam
 
     if (strcmp(attr, "MAIN") == 0) return PyLong_FromLong(LV_ANIM_IMAGE_PART_MAIN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ANIM_IMAGE_PART' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ANIM_IMAGE_PART_members[] = {
+    "MAIN",
+    NULL
+};
+
+static PyObject *py_lv_LV_ANIM_IMAGE_PART_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ANIM_IMAGE_PART_members);
+}
+
+static PyMethodDef py_lv_LV_ANIM_IMAGE_PART_methods[] = {
+    {"__dir__", py_lv_LV_ANIM_IMAGE_PART_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ANIM_IMAGE_PART_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ANIM_IMAGE_PART",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ANIM_IMAGE_PART_getattro,
+    .tp_methods = py_lv_LV_ANIM_IMAGE_PART_methods,
     .tp_doc = "LVGL ANIM_IMAGE_PART enum namespace",
 };
 
@@ -2544,15 +4205,32 @@ static PyObject *py_lv_LV_ARC_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SYMMETRICAL") == 0) return PyLong_FromLong(LV_ARC_MODE_SYMMETRICAL);
     if (strcmp(attr, "REVERSE") == 0) return PyLong_FromLong(LV_ARC_MODE_REVERSE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ARC_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ARC_MODE_members[] = {
+    "NORMAL",
+    "SYMMETRICAL",
+    "REVERSE",
+    NULL
+};
+
+static PyObject *py_lv_LV_ARC_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ARC_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_ARC_MODE_methods[] = {
+    {"__dir__", py_lv_LV_ARC_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ARC_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ARC_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ARC_MODE_getattro,
+    .tp_methods = py_lv_LV_ARC_MODE_methods,
     .tp_doc = "LVGL ARC_MODE enum namespace",
 };
 
@@ -2572,15 +4250,31 @@ static PyObject *py_lv_LV_ARCLABEL_DIR_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "CLOCKWISE") == 0) return PyLong_FromLong(LV_ARCLABEL_DIR_CLOCKWISE);
     if (strcmp(attr, "COUNTER_CLOCKWISE") == 0) return PyLong_FromLong(LV_ARCLABEL_DIR_COUNTER_CLOCKWISE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ARCLABEL_DIR' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ARCLABEL_DIR_members[] = {
+    "CLOCKWISE",
+    "COUNTER_CLOCKWISE",
+    NULL
+};
+
+static PyObject *py_lv_LV_ARCLABEL_DIR_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ARCLABEL_DIR_members);
+}
+
+static PyMethodDef py_lv_LV_ARCLABEL_DIR_methods[] = {
+    {"__dir__", py_lv_LV_ARCLABEL_DIR_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ARCLABEL_DIR_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ARCLABEL_DIR",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ARCLABEL_DIR_getattro,
+    .tp_methods = py_lv_LV_ARCLABEL_DIR_methods,
     .tp_doc = "LVGL ARCLABEL_DIR enum namespace",
 };
 
@@ -2602,15 +4296,33 @@ static PyObject *py_lv_LV_ARCLABEL_TEXT_ALIGN_getattro(PyObject *self, PyObject 
     if (strcmp(attr, "CENTER") == 0) return PyLong_FromLong(LV_ARCLABEL_TEXT_ALIGN_CENTER);
     if (strcmp(attr, "TRAILING") == 0) return PyLong_FromLong(LV_ARCLABEL_TEXT_ALIGN_TRAILING);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ARCLABEL_TEXT_ALIGN' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ARCLABEL_TEXT_ALIGN_members[] = {
+    "DEFAULT",
+    "LEADING",
+    "CENTER",
+    "TRAILING",
+    NULL
+};
+
+static PyObject *py_lv_LV_ARCLABEL_TEXT_ALIGN_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ARCLABEL_TEXT_ALIGN_members);
+}
+
+static PyMethodDef py_lv_LV_ARCLABEL_TEXT_ALIGN_methods[] = {
+    {"__dir__", py_lv_LV_ARCLABEL_TEXT_ALIGN_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ARCLABEL_TEXT_ALIGN_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ARCLABEL_TEXT_ALIGN",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ARCLABEL_TEXT_ALIGN_getattro,
+    .tp_methods = py_lv_LV_ARCLABEL_TEXT_ALIGN_methods,
     .tp_doc = "LVGL ARCLABEL_TEXT_ALIGN enum namespace",
 };
 
@@ -2631,15 +4343,32 @@ static PyObject *py_lv_LV_ARCLABEL_OVERFLOW_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "ELLIPSIS") == 0) return PyLong_FromLong(LV_ARCLABEL_OVERFLOW_ELLIPSIS);
     if (strcmp(attr, "CLIP") == 0) return PyLong_FromLong(LV_ARCLABEL_OVERFLOW_CLIP);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ARCLABEL_OVERFLOW' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ARCLABEL_OVERFLOW_members[] = {
+    "VISIBLE",
+    "ELLIPSIS",
+    "CLIP",
+    NULL
+};
+
+static PyObject *py_lv_LV_ARCLABEL_OVERFLOW_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ARCLABEL_OVERFLOW_members);
+}
+
+static PyMethodDef py_lv_LV_ARCLABEL_OVERFLOW_methods[] = {
+    {"__dir__", py_lv_LV_ARCLABEL_OVERFLOW_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ARCLABEL_OVERFLOW_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ARCLABEL_OVERFLOW",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ARCLABEL_OVERFLOW_getattro,
+    .tp_methods = py_lv_LV_ARCLABEL_OVERFLOW_methods,
     .tp_doc = "LVGL ARCLABEL_OVERFLOW enum namespace",
 };
 
@@ -2662,15 +4391,34 @@ static PyObject *py_lv_LV_LABEL_LONG_MODE_getattro(PyObject *self, PyObject *nam
     if (strcmp(attr, "SCROLL_CIRCULAR") == 0) return PyLong_FromLong(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
     if (strcmp(attr, "CLIP") == 0) return PyLong_FromLong(LV_LABEL_LONG_MODE_CLIP);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.LABEL_LONG_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_LABEL_LONG_MODE_members[] = {
+    "WRAP",
+    "DOTS",
+    "SCROLL",
+    "SCROLL_CIRCULAR",
+    "CLIP",
+    NULL
+};
+
+static PyObject *py_lv_LV_LABEL_LONG_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_LABEL_LONG_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_LABEL_LONG_MODE_methods[] = {
+    {"__dir__", py_lv_LV_LABEL_LONG_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_LABEL_LONG_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.LABEL_LONG_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_LABEL_LONG_MODE_getattro,
+    .tp_methods = py_lv_LV_LABEL_LONG_MODE_methods,
     .tp_doc = "LVGL LABEL_LONG_MODE enum namespace",
 };
 
@@ -2691,15 +4439,32 @@ static PyObject *py_lv_LV_BAR_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SYMMETRICAL") == 0) return PyLong_FromLong(LV_BAR_MODE_SYMMETRICAL);
     if (strcmp(attr, "RANGE") == 0) return PyLong_FromLong(LV_BAR_MODE_RANGE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BAR_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BAR_MODE_members[] = {
+    "NORMAL",
+    "SYMMETRICAL",
+    "RANGE",
+    NULL
+};
+
+static PyObject *py_lv_LV_BAR_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BAR_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_BAR_MODE_methods[] = {
+    {"__dir__", py_lv_LV_BAR_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BAR_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BAR_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BAR_MODE_getattro,
+    .tp_methods = py_lv_LV_BAR_MODE_methods,
     .tp_doc = "LVGL BAR_MODE enum namespace",
 };
 
@@ -2720,15 +4485,32 @@ static PyObject *py_lv_LV_BAR_ORIENTATION_getattro(PyObject *self, PyObject *nam
     if (strcmp(attr, "HORIZONTAL") == 0) return PyLong_FromLong(LV_BAR_ORIENTATION_HORIZONTAL);
     if (strcmp(attr, "VERTICAL") == 0) return PyLong_FromLong(LV_BAR_ORIENTATION_VERTICAL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BAR_ORIENTATION' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BAR_ORIENTATION_members[] = {
+    "AUTO",
+    "HORIZONTAL",
+    "VERTICAL",
+    NULL
+};
+
+static PyObject *py_lv_LV_BAR_ORIENTATION_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BAR_ORIENTATION_members);
+}
+
+static PyMethodDef py_lv_LV_BAR_ORIENTATION_methods[] = {
+    {"__dir__", py_lv_LV_BAR_ORIENTATION_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BAR_ORIENTATION_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BAR_ORIENTATION",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BAR_ORIENTATION_getattro,
+    .tp_methods = py_lv_LV_BAR_ORIENTATION_methods,
     .tp_doc = "LVGL BAR_ORIENTATION enum namespace",
 };
 
@@ -2774,15 +4556,57 @@ static PyObject *py_lv_LV_BUTTONMATRIX_CTRL_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "CUSTOM_1") == 0) return PyLong_FromLong(LV_BUTTONMATRIX_CTRL_CUSTOM_1);
     if (strcmp(attr, "CUSTOM_2") == 0) return PyLong_FromLong(LV_BUTTONMATRIX_CTRL_CUSTOM_2);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BUTTONMATRIX_CTRL' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BUTTONMATRIX_CTRL_members[] = {
+    "NONE",
+    "WIDTH_1",
+    "WIDTH_2",
+    "WIDTH_3",
+    "WIDTH_4",
+    "WIDTH_5",
+    "WIDTH_6",
+    "WIDTH_7",
+    "WIDTH_8",
+    "WIDTH_9",
+    "WIDTH_10",
+    "WIDTH_11",
+    "WIDTH_12",
+    "WIDTH_13",
+    "WIDTH_14",
+    "WIDTH_15",
+    "HIDDEN",
+    "NO_REPEAT",
+    "DISABLED",
+    "CHECKABLE",
+    "CHECKED",
+    "CLICK_TRIG",
+    "POPOVER",
+    "RECOLOR",
+    "RESERVED_1",
+    "RESERVED_2",
+    "CUSTOM_1",
+    "CUSTOM_2",
+    NULL
+};
+
+static PyObject *py_lv_LV_BUTTONMATRIX_CTRL_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BUTTONMATRIX_CTRL_members);
+}
+
+static PyMethodDef py_lv_LV_BUTTONMATRIX_CTRL_methods[] = {
+    {"__dir__", py_lv_LV_BUTTONMATRIX_CTRL_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BUTTONMATRIX_CTRL_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BUTTONMATRIX_CTRL",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BUTTONMATRIX_CTRL_getattro,
+    .tp_methods = py_lv_LV_BUTTONMATRIX_CTRL_methods,
     .tp_doc = "LVGL BUTTONMATRIX_CTRL enum namespace",
 };
 
@@ -2806,15 +4630,35 @@ static PyObject *py_lv_LV_CHART_TYPE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "STACKED") == 0) return PyLong_FromLong(LV_CHART_TYPE_STACKED);
     if (strcmp(attr, "SCATTER") == 0) return PyLong_FromLong(LV_CHART_TYPE_SCATTER);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.CHART_TYPE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_CHART_TYPE_members[] = {
+    "NONE",
+    "LINE",
+    "CURVE",
+    "BAR",
+    "STACKED",
+    "SCATTER",
+    NULL
+};
+
+static PyObject *py_lv_LV_CHART_TYPE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_CHART_TYPE_members);
+}
+
+static PyMethodDef py_lv_LV_CHART_TYPE_methods[] = {
+    {"__dir__", py_lv_LV_CHART_TYPE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_CHART_TYPE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.CHART_TYPE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_CHART_TYPE_getattro,
+    .tp_methods = py_lv_LV_CHART_TYPE_methods,
     .tp_doc = "LVGL CHART_TYPE enum namespace",
 };
 
@@ -2834,15 +4678,31 @@ static PyObject *py_lv_LV_CHART_UPDATE_MODE_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "SHIFT") == 0) return PyLong_FromLong(LV_CHART_UPDATE_MODE_SHIFT);
     if (strcmp(attr, "CIRCULAR") == 0) return PyLong_FromLong(LV_CHART_UPDATE_MODE_CIRCULAR);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.CHART_UPDATE_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_CHART_UPDATE_MODE_members[] = {
+    "SHIFT",
+    "CIRCULAR",
+    NULL
+};
+
+static PyObject *py_lv_LV_CHART_UPDATE_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_CHART_UPDATE_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_CHART_UPDATE_MODE_methods[] = {
+    {"__dir__", py_lv_LV_CHART_UPDATE_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_CHART_UPDATE_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.CHART_UPDATE_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_CHART_UPDATE_MODE_getattro,
+    .tp_methods = py_lv_LV_CHART_UPDATE_MODE_methods,
     .tp_doc = "LVGL CHART_UPDATE_MODE enum namespace",
 };
 
@@ -2865,15 +4725,34 @@ static PyObject *py_lv_LV_CHART_AXIS_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SECONDARY_X") == 0) return PyLong_FromLong(LV_CHART_AXIS_SECONDARY_X);
     if (strcmp(attr, "LAST") == 0) return PyLong_FromLong(LV_CHART_AXIS_LAST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.CHART_AXIS' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_CHART_AXIS_members[] = {
+    "PRIMARY_Y",
+    "SECONDARY_Y",
+    "PRIMARY_X",
+    "SECONDARY_X",
+    "LAST",
+    NULL
+};
+
+static PyObject *py_lv_LV_CHART_AXIS_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_CHART_AXIS_members);
+}
+
+static PyMethodDef py_lv_LV_CHART_AXIS_methods[] = {
+    {"__dir__", py_lv_LV_CHART_AXIS_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_CHART_AXIS_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.CHART_AXIS",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_CHART_AXIS_getattro,
+    .tp_methods = py_lv_LV_CHART_AXIS_methods,
     .tp_doc = "LVGL CHART_AXIS enum namespace",
 };
 
@@ -2898,15 +4777,36 @@ static PyObject *py_lv_LV_IMAGEBUTTON_STATE_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "CHECKED_DISABLED") == 0) return PyLong_FromLong(LV_IMAGEBUTTON_STATE_CHECKED_DISABLED);
     if (strcmp(attr, "NUM") == 0) return PyLong_FromLong(LV_IMAGEBUTTON_STATE_NUM);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.IMAGEBUTTON_STATE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_IMAGEBUTTON_STATE_members[] = {
+    "RELEASED",
+    "PRESSED",
+    "DISABLED",
+    "CHECKED_RELEASED",
+    "CHECKED_PRESSED",
+    "CHECKED_DISABLED",
+    "NUM",
+    NULL
+};
+
+static PyObject *py_lv_LV_IMAGEBUTTON_STATE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_IMAGEBUTTON_STATE_members);
+}
+
+static PyMethodDef py_lv_LV_IMAGEBUTTON_STATE_methods[] = {
+    {"__dir__", py_lv_LV_IMAGEBUTTON_STATE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_IMAGEBUTTON_STATE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.IMAGEBUTTON_STATE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_IMAGEBUTTON_STATE_getattro,
+    .tp_methods = py_lv_LV_IMAGEBUTTON_STATE_methods,
     .tp_doc = "LVGL IMAGEBUTTON_STATE enum namespace",
 };
 
@@ -2932,15 +4832,37 @@ static PyObject *py_lv_LV_KEYBOARD_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "USER_3") == 0) return PyLong_FromLong(LV_KEYBOARD_MODE_USER_3);
     if (strcmp(attr, "USER_4") == 0) return PyLong_FromLong(LV_KEYBOARD_MODE_USER_4);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.KEYBOARD_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_KEYBOARD_MODE_members[] = {
+    "TEXT_LOWER",
+    "TEXT_UPPER",
+    "SPECIAL",
+    "NUMBER",
+    "USER_1",
+    "USER_2",
+    "USER_3",
+    "USER_4",
+    NULL
+};
+
+static PyObject *py_lv_LV_KEYBOARD_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_KEYBOARD_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_KEYBOARD_MODE_methods[] = {
+    {"__dir__", py_lv_LV_KEYBOARD_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_KEYBOARD_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.KEYBOARD_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_KEYBOARD_MODE_getattro,
+    .tp_methods = py_lv_LV_KEYBOARD_MODE_methods,
     .tp_doc = "LVGL KEYBOARD_MODE enum namespace",
 };
 
@@ -2961,15 +4883,32 @@ static PyObject *py_lv_LV_MENU_HEADER_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "TOP_UNFIXED") == 0) return PyLong_FromLong(LV_MENU_HEADER_TOP_UNFIXED);
     if (strcmp(attr, "BOTTOM_FIXED") == 0) return PyLong_FromLong(LV_MENU_HEADER_BOTTOM_FIXED);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.MENU_HEADER' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_MENU_HEADER_members[] = {
+    "TOP_FIXED",
+    "TOP_UNFIXED",
+    "BOTTOM_FIXED",
+    NULL
+};
+
+static PyObject *py_lv_LV_MENU_HEADER_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_MENU_HEADER_members);
+}
+
+static PyMethodDef py_lv_LV_MENU_HEADER_methods[] = {
+    {"__dir__", py_lv_LV_MENU_HEADER_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_MENU_HEADER_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.MENU_HEADER",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_MENU_HEADER_getattro,
+    .tp_methods = py_lv_LV_MENU_HEADER_methods,
     .tp_doc = "LVGL MENU_HEADER enum namespace",
 };
 
@@ -2989,15 +4928,31 @@ static PyObject *py_lv_LV_MENU_ROOT_BACK_BUTTON_getattro(PyObject *self, PyObjec
     if (strcmp(attr, "DISABLED") == 0) return PyLong_FromLong(LV_MENU_ROOT_BACK_BUTTON_DISABLED);
     if (strcmp(attr, "ENABLED") == 0) return PyLong_FromLong(LV_MENU_ROOT_BACK_BUTTON_ENABLED);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.MENU_ROOT_BACK_BUTTON' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_MENU_ROOT_BACK_BUTTON_members[] = {
+    "DISABLED",
+    "ENABLED",
+    NULL
+};
+
+static PyObject *py_lv_LV_MENU_ROOT_BACK_BUTTON_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_MENU_ROOT_BACK_BUTTON_members);
+}
+
+static PyMethodDef py_lv_LV_MENU_ROOT_BACK_BUTTON_methods[] = {
+    {"__dir__", py_lv_LV_MENU_ROOT_BACK_BUTTON_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_MENU_ROOT_BACK_BUTTON_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.MENU_ROOT_BACK_BUTTON",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_MENU_ROOT_BACK_BUTTON_getattro,
+    .tp_methods = py_lv_LV_MENU_ROOT_BACK_BUTTON_methods,
     .tp_doc = "LVGL MENU_ROOT_BACK_BUTTON enum namespace",
 };
 
@@ -3017,15 +4972,31 @@ static PyObject *py_lv_LV_ROLLER_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NORMAL") == 0) return PyLong_FromLong(LV_ROLLER_MODE_NORMAL);
     if (strcmp(attr, "INFINITE") == 0) return PyLong_FromLong(LV_ROLLER_MODE_INFINITE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.ROLLER_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_ROLLER_MODE_members[] = {
+    "NORMAL",
+    "INFINITE",
+    NULL
+};
+
+static PyObject *py_lv_LV_ROLLER_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_ROLLER_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_ROLLER_MODE_methods[] = {
+    {"__dir__", py_lv_LV_ROLLER_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_ROLLER_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.ROLLER_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_ROLLER_MODE_getattro,
+    .tp_methods = py_lv_LV_ROLLER_MODE_methods,
     .tp_doc = "LVGL ROLLER_MODE enum namespace",
 };
 
@@ -3050,15 +5021,36 @@ static PyObject *py_lv_LV_SCALE_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "ROUND_OUTER") == 0) return PyLong_FromLong(LV_SCALE_MODE_ROUND_OUTER);
     if (strcmp(attr, "LAST") == 0) return PyLong_FromLong(LV_SCALE_MODE_LAST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SCALE_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SCALE_MODE_members[] = {
+    "HORIZONTAL_TOP",
+    "HORIZONTAL_BOTTOM",
+    "VERTICAL_LEFT",
+    "VERTICAL_RIGHT",
+    "ROUND_INNER",
+    "ROUND_OUTER",
+    "LAST",
+    NULL
+};
+
+static PyObject *py_lv_LV_SCALE_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SCALE_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_SCALE_MODE_methods[] = {
+    {"__dir__", py_lv_LV_SCALE_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SCALE_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SCALE_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SCALE_MODE_getattro,
+    .tp_methods = py_lv_LV_SCALE_MODE_methods,
     .tp_doc = "LVGL SCALE_MODE enum namespace",
 };
 
@@ -3079,15 +5071,32 @@ static PyObject *py_lv_LV_SLIDER_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "SYMMETRICAL") == 0) return PyLong_FromLong(LV_SLIDER_MODE_SYMMETRICAL);
     if (strcmp(attr, "RANGE") == 0) return PyLong_FromLong(LV_SLIDER_MODE_RANGE);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SLIDER_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SLIDER_MODE_members[] = {
+    "NORMAL",
+    "SYMMETRICAL",
+    "RANGE",
+    NULL
+};
+
+static PyObject *py_lv_LV_SLIDER_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SLIDER_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_SLIDER_MODE_methods[] = {
+    {"__dir__", py_lv_LV_SLIDER_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SLIDER_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SLIDER_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SLIDER_MODE_getattro,
+    .tp_methods = py_lv_LV_SLIDER_MODE_methods,
     .tp_doc = "LVGL SLIDER_MODE enum namespace",
 };
 
@@ -3108,15 +5117,32 @@ static PyObject *py_lv_LV_SLIDER_ORIENTATION_getattro(PyObject *self, PyObject *
     if (strcmp(attr, "HORIZONTAL") == 0) return PyLong_FromLong(LV_SLIDER_ORIENTATION_HORIZONTAL);
     if (strcmp(attr, "VERTICAL") == 0) return PyLong_FromLong(LV_SLIDER_ORIENTATION_VERTICAL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SLIDER_ORIENTATION' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SLIDER_ORIENTATION_members[] = {
+    "AUTO",
+    "HORIZONTAL",
+    "VERTICAL",
+    NULL
+};
+
+static PyObject *py_lv_LV_SLIDER_ORIENTATION_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SLIDER_ORIENTATION_members);
+}
+
+static PyMethodDef py_lv_LV_SLIDER_ORIENTATION_methods[] = {
+    {"__dir__", py_lv_LV_SLIDER_ORIENTATION_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SLIDER_ORIENTATION_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SLIDER_ORIENTATION",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SLIDER_ORIENTATION_getattro,
+    .tp_methods = py_lv_LV_SLIDER_ORIENTATION_methods,
     .tp_doc = "LVGL SLIDER_ORIENTATION enum namespace",
 };
 
@@ -3137,15 +5163,32 @@ static PyObject *py_lv_LV_SPAN_OVERFLOW_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "ELLIPSIS") == 0) return PyLong_FromLong(LV_SPAN_OVERFLOW_ELLIPSIS);
     if (strcmp(attr, "LAST") == 0) return PyLong_FromLong(LV_SPAN_OVERFLOW_LAST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SPAN_OVERFLOW' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SPAN_OVERFLOW_members[] = {
+    "CLIP",
+    "ELLIPSIS",
+    "LAST",
+    NULL
+};
+
+static PyObject *py_lv_LV_SPAN_OVERFLOW_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SPAN_OVERFLOW_members);
+}
+
+static PyMethodDef py_lv_LV_SPAN_OVERFLOW_methods[] = {
+    {"__dir__", py_lv_LV_SPAN_OVERFLOW_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SPAN_OVERFLOW_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SPAN_OVERFLOW",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SPAN_OVERFLOW_getattro,
+    .tp_methods = py_lv_LV_SPAN_OVERFLOW_methods,
     .tp_doc = "LVGL SPAN_OVERFLOW enum namespace",
 };
 
@@ -3167,15 +5210,33 @@ static PyObject *py_lv_LV_SPAN_MODE_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "BREAK") == 0) return PyLong_FromLong(LV_SPAN_MODE_BREAK);
     if (strcmp(attr, "LAST") == 0) return PyLong_FromLong(LV_SPAN_MODE_LAST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SPAN_MODE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SPAN_MODE_members[] = {
+    "FIXED",
+    "EXPAND",
+    "BREAK",
+    "LAST",
+    NULL
+};
+
+static PyObject *py_lv_LV_SPAN_MODE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SPAN_MODE_members);
+}
+
+static PyMethodDef py_lv_LV_SPAN_MODE_methods[] = {
+    {"__dir__", py_lv_LV_SPAN_MODE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SPAN_MODE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SPAN_MODE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SPAN_MODE_getattro,
+    .tp_methods = py_lv_LV_SPAN_MODE_methods,
     .tp_doc = "LVGL SPAN_MODE enum namespace",
 };
 
@@ -3196,15 +5257,32 @@ static PyObject *py_lv_LV_SWITCH_ORIENTATION_getattro(PyObject *self, PyObject *
     if (strcmp(attr, "HORIZONTAL") == 0) return PyLong_FromLong(LV_SWITCH_ORIENTATION_HORIZONTAL);
     if (strcmp(attr, "VERTICAL") == 0) return PyLong_FromLong(LV_SWITCH_ORIENTATION_VERTICAL);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SWITCH_ORIENTATION' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SWITCH_ORIENTATION_members[] = {
+    "AUTO",
+    "HORIZONTAL",
+    "VERTICAL",
+    NULL
+};
+
+static PyObject *py_lv_LV_SWITCH_ORIENTATION_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SWITCH_ORIENTATION_members);
+}
+
+static PyMethodDef py_lv_LV_SWITCH_ORIENTATION_methods[] = {
+    {"__dir__", py_lv_LV_SWITCH_ORIENTATION_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SWITCH_ORIENTATION_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SWITCH_ORIENTATION",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SWITCH_ORIENTATION_getattro,
+    .tp_methods = py_lv_LV_SWITCH_ORIENTATION_methods,
     .tp_doc = "LVGL SWITCH_ORIENTATION enum namespace",
 };
 
@@ -3229,15 +5307,36 @@ static PyObject *py_lv_LV_TABLE_CELL_CTRL_getattro(PyObject *self, PyObject *nam
     if (strcmp(attr, "CUSTOM_3") == 0) return PyLong_FromLong(LV_TABLE_CELL_CTRL_CUSTOM_3);
     if (strcmp(attr, "CUSTOM_4") == 0) return PyLong_FromLong(LV_TABLE_CELL_CTRL_CUSTOM_4);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.TABLE_CELL_CTRL' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_TABLE_CELL_CTRL_members[] = {
+    "NONE",
+    "MERGE_RIGHT",
+    "TEXT_CROP",
+    "CUSTOM_1",
+    "CUSTOM_2",
+    "CUSTOM_3",
+    "CUSTOM_4",
+    NULL
+};
+
+static PyObject *py_lv_LV_TABLE_CELL_CTRL_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_TABLE_CELL_CTRL_members);
+}
+
+static PyMethodDef py_lv_LV_TABLE_CELL_CTRL_methods[] = {
+    {"__dir__", py_lv_LV_TABLE_CELL_CTRL_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_TABLE_CELL_CTRL_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.TABLE_CELL_CTRL",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_TABLE_CELL_CTRL_getattro,
+    .tp_methods = py_lv_LV_TABLE_CELL_CTRL_methods,
     .tp_doc = "LVGL TABLE_CELL_CTRL enum namespace",
 };
 
@@ -3257,15 +5356,31 @@ static PyObject *py_lv_LV_BARCODE_ENCODING_CODE128_getattro(PyObject *self, PyOb
     if (strcmp(attr, "GS1") == 0) return PyLong_FromLong(LV_BARCODE_ENCODING_CODE128_GS1);
     if (strcmp(attr, "RAW") == 0) return PyLong_FromLong(LV_BARCODE_ENCODING_CODE128_RAW);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.BARCODE_ENCODING_CODE128' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_BARCODE_ENCODING_CODE128_members[] = {
+    "GS1",
+    "RAW",
+    NULL
+};
+
+static PyObject *py_lv_LV_BARCODE_ENCODING_CODE128_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_BARCODE_ENCODING_CODE128_members);
+}
+
+static PyMethodDef py_lv_LV_BARCODE_ENCODING_CODE128_methods[] = {
+    {"__dir__", py_lv_LV_BARCODE_ENCODING_CODE128_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_BARCODE_ENCODING_CODE128_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.BARCODE_ENCODING_CODE128",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_BARCODE_ENCODING_CODE128_getattro,
+    .tp_methods = py_lv_LV_BARCODE_ENCODING_CODE128_methods,
     .tp_doc = "LVGL BARCODE_ENCODING_CODE128 enum namespace",
 };
 
@@ -3287,15 +5402,33 @@ static PyObject *py_lv_LV_DRAW_SW_MASK_RES_getattro(PyObject *self, PyObject *na
     if (strcmp(attr, "CHANGED") == 0) return PyLong_FromLong(LV_DRAW_SW_MASK_RES_CHANGED);
     if (strcmp(attr, "UNKNOWN") == 0) return PyLong_FromLong(LV_DRAW_SW_MASK_RES_UNKNOWN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DRAW_SW_MASK_RES' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DRAW_SW_MASK_RES_members[] = {
+    "TRANSP",
+    "FULL_COVER",
+    "CHANGED",
+    "UNKNOWN",
+    NULL
+};
+
+static PyObject *py_lv_LV_DRAW_SW_MASK_RES_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DRAW_SW_MASK_RES_members);
+}
+
+static PyMethodDef py_lv_LV_DRAW_SW_MASK_RES_methods[] = {
+    {"__dir__", py_lv_LV_DRAW_SW_MASK_RES_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DRAW_SW_MASK_RES_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DRAW_SW_MASK_RES",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DRAW_SW_MASK_RES_getattro,
+    .tp_methods = py_lv_LV_DRAW_SW_MASK_RES_methods,
     .tp_doc = "LVGL DRAW_SW_MASK_RES enum namespace",
 };
 
@@ -3318,15 +5451,34 @@ static PyObject *py_lv_LV_DRAW_SW_MASK_TYPE_getattro(PyObject *self, PyObject *n
     if (strcmp(attr, "FADE") == 0) return PyLong_FromLong(LV_DRAW_SW_MASK_TYPE_FADE);
     if (strcmp(attr, "MAP") == 0) return PyLong_FromLong(LV_DRAW_SW_MASK_TYPE_MAP);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DRAW_SW_MASK_TYPE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DRAW_SW_MASK_TYPE_members[] = {
+    "LINE",
+    "ANGLE",
+    "RADIUS",
+    "FADE",
+    "MAP",
+    NULL
+};
+
+static PyObject *py_lv_LV_DRAW_SW_MASK_TYPE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DRAW_SW_MASK_TYPE_members);
+}
+
+static PyMethodDef py_lv_LV_DRAW_SW_MASK_TYPE_methods[] = {
+    {"__dir__", py_lv_LV_DRAW_SW_MASK_TYPE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DRAW_SW_MASK_TYPE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DRAW_SW_MASK_TYPE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DRAW_SW_MASK_TYPE_getattro,
+    .tp_methods = py_lv_LV_DRAW_SW_MASK_TYPE_methods,
     .tp_doc = "LVGL DRAW_SW_MASK_TYPE enum namespace",
 };
 
@@ -3348,15 +5500,33 @@ static PyObject *py_lv_LV_DRAW_SW_MASK_LINE_SIDE_getattro(PyObject *self, PyObje
     if (strcmp(attr, "TOP") == 0) return PyLong_FromLong(LV_DRAW_SW_MASK_LINE_SIDE_TOP);
     if (strcmp(attr, "BOTTOM") == 0) return PyLong_FromLong(LV_DRAW_SW_MASK_LINE_SIDE_BOTTOM);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.DRAW_SW_MASK_LINE_SIDE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_DRAW_SW_MASK_LINE_SIDE_members[] = {
+    "LEFT",
+    "RIGHT",
+    "TOP",
+    "BOTTOM",
+    NULL
+};
+
+static PyObject *py_lv_LV_DRAW_SW_MASK_LINE_SIDE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_DRAW_SW_MASK_LINE_SIDE_members);
+}
+
+static PyMethodDef py_lv_LV_DRAW_SW_MASK_LINE_SIDE_methods[] = {
+    {"__dir__", py_lv_LV_DRAW_SW_MASK_LINE_SIDE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_DRAW_SW_MASK_LINE_SIDE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.DRAW_SW_MASK_LINE_SIDE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_DRAW_SW_MASK_LINE_SIDE_getattro,
+    .tp_methods = py_lv_LV_DRAW_SW_MASK_LINE_SIDE_methods,
     .tp_doc = "LVGL DRAW_SW_MASK_LINE_SIDE enum namespace",
 };
 
@@ -3379,15 +5549,34 @@ static PyObject *py_lv_LV_THREAD_PRIO_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "HIGH") == 0) return PyLong_FromLong(LV_THREAD_PRIO_HIGH);
     if (strcmp(attr, "HIGHEST") == 0) return PyLong_FromLong(LV_THREAD_PRIO_HIGHEST);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.THREAD_PRIO' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_THREAD_PRIO_members[] = {
+    "LOWEST",
+    "LOW",
+    "MID",
+    "HIGH",
+    "HIGHEST",
+    NULL
+};
+
+static PyObject *py_lv_LV_THREAD_PRIO_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_THREAD_PRIO_members);
+}
+
+static PyMethodDef py_lv_LV_THREAD_PRIO_methods[] = {
+    {"__dir__", py_lv_LV_THREAD_PRIO_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_THREAD_PRIO_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.THREAD_PRIO",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_THREAD_PRIO_getattro,
+    .tp_methods = py_lv_LV_THREAD_PRIO_methods,
     .tp_doc = "LVGL THREAD_PRIO enum namespace",
 };
 
@@ -3409,15 +5598,33 @@ static PyObject *py_lv_LV_CACHE_RESERVE_COND_getattro(PyObject *self, PyObject *
     if (strcmp(attr, "NEED_VICTIM") == 0) return PyLong_FromLong(LV_CACHE_RESERVE_COND_NEED_VICTIM);
     if (strcmp(attr, "ERROR") == 0) return PyLong_FromLong(LV_CACHE_RESERVE_COND_ERROR);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.CACHE_RESERVE_COND' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_CACHE_RESERVE_COND_members[] = {
+    "OK",
+    "TOO_LARGE",
+    "NEED_VICTIM",
+    "ERROR",
+    NULL
+};
+
+static PyObject *py_lv_LV_CACHE_RESERVE_COND_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_CACHE_RESERVE_COND_members);
+}
+
+static PyMethodDef py_lv_LV_CACHE_RESERVE_COND_methods[] = {
+    {"__dir__", py_lv_LV_CACHE_RESERVE_COND_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_CACHE_RESERVE_COND_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.CACHE_RESERVE_COND",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_CACHE_RESERVE_COND_getattro,
+    .tp_methods = py_lv_LV_CACHE_RESERVE_COND_methods,
     .tp_doc = "LVGL CACHE_RESERVE_COND enum namespace",
 };
 
@@ -3438,15 +5645,32 @@ static PyObject *py_lv_LV_TEXT_CMD_STATE_getattro(PyObject *self, PyObject *name
     if (strcmp(attr, "PAR") == 0) return PyLong_FromLong(LV_TEXT_CMD_STATE_PAR);
     if (strcmp(attr, "IN") == 0) return PyLong_FromLong(LV_TEXT_CMD_STATE_IN);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.TEXT_CMD_STATE' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_TEXT_CMD_STATE_members[] = {
+    "WAIT",
+    "PAR",
+    "IN",
+    NULL
+};
+
+static PyObject *py_lv_LV_TEXT_CMD_STATE_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_TEXT_CMD_STATE_members);
+}
+
+static PyMethodDef py_lv_LV_TEXT_CMD_STATE_methods[] = {
+    {"__dir__", py_lv_LV_TEXT_CMD_STATE_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_TEXT_CMD_STATE_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.TEXT_CMD_STATE",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_TEXT_CMD_STATE_getattro,
+    .tp_methods = py_lv_LV_TEXT_CMD_STATE_methods,
     .tp_doc = "LVGL TEXT_CMD_STATE enum namespace",
 };
 
@@ -3526,15 +5750,91 @@ static PyObject *py_lv_LV_SYMBOL_getattro(PyObject *self, PyObject *name)
     if (strcmp(attr, "NEW_LINE") == 0) return PyUnicode_FromString(LV_SYMBOL_NEW_LINE);
     if (strcmp(attr, "DUMMY") == 0) return PyUnicode_FromString(LV_SYMBOL_DUMMY);
 
-    PyErr_Format(PyExc_AttributeError, "'lvgl.SYMBOL' object has no attribute '%s'", attr);
-    return NULL;
+    return PyObject_GenericGetAttr(self, name);
 }
+
+static const char *const py_lv_LV_SYMBOL_members[] = {
+    "BULLET",
+    "AUDIO",
+    "VIDEO",
+    "LIST",
+    "OK",
+    "CLOSE",
+    "POWER",
+    "SETTINGS",
+    "HOME",
+    "DOWNLOAD",
+    "DRIVE",
+    "REFRESH",
+    "MUTE",
+    "VOLUME_MID",
+    "VOLUME_MAX",
+    "IMAGE",
+    "TINT",
+    "PREV",
+    "PLAY",
+    "PAUSE",
+    "STOP",
+    "NEXT",
+    "EJECT",
+    "LEFT",
+    "RIGHT",
+    "PLUS",
+    "MINUS",
+    "EYE_OPEN",
+    "EYE_CLOSE",
+    "WARNING",
+    "SHUFFLE",
+    "UP",
+    "DOWN",
+    "LOOP",
+    "DIRECTORY",
+    "UPLOAD",
+    "CALL",
+    "CUT",
+    "COPY",
+    "SAVE",
+    "BARS",
+    "ENVELOPE",
+    "CHARGE",
+    "PASTE",
+    "BELL",
+    "KEYBOARD",
+    "GPS",
+    "FILE",
+    "WIFI",
+    "BATTERY_FULL",
+    "BATTERY_3",
+    "BATTERY_2",
+    "BATTERY_1",
+    "BATTERY_EMPTY",
+    "USB",
+    "BLUETOOTH",
+    "TRASH",
+    "EDIT",
+    "BACKSPACE",
+    "SD_CARD",
+    "NEW_LINE",
+    "DUMMY",
+    NULL
+};
+
+static PyObject *py_lv_LV_SYMBOL_dir(PyObject *self, PyObject *Py_UNUSED(ignored))
+{
+    return lvpy_enum_dir(self, py_lv_LV_SYMBOL_members);
+}
+
+static PyMethodDef py_lv_LV_SYMBOL_methods[] = {
+    {"__dir__", py_lv_LV_SYMBOL_dir, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
 
 static PyTypeObject py_lv_LV_SYMBOL_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "lvgl.SYMBOL",
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_getattro = py_lv_LV_SYMBOL_getattro,
+    .tp_methods = py_lv_LV_SYMBOL_methods,
     .tp_doc = "LVGL SYMBOL enum namespace",
 };
 
