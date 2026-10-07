@@ -84,7 +84,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           printf '%s\n' "$VERSION" > VERSION
-          git add LVGL_BINDINGS_COMMIT VERSION generated/lvgl_python.c generated/lvgl.pyi lv_conf.h display_driver.py fs_driver.py lvgl
+          git add LVGL_BINDINGS_COMMIT VERSION generated/lvgl_python.c generated/lvgl.pyi lv_conf.h fs_driver.py lvgl
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Already synchronized."

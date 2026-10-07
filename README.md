@@ -4,13 +4,13 @@ Native CPython extension for [LVGL](https://lvgl.io/), generated from [`lvgl-bin
 
 This is the publishing endpoint in the LVGL family: it turns synced bindings into versioned `pydevices-lvgl` wheels on TestPyPI. See [lvgl-bindings — The LVGL family](https://github.com/PyDevices/lvgl-bindings#the-lvgl-family) for how the family fits together.
 
-**Synced from lvgl-bindings:** the generated bindings and `display_driver.py`/`fs_driver.py` helpers here are synced from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings) at the commit pinned in `LVGL_BINDINGS_COMMIT`. Do not edit them here — change them in lvgl-bindings and re-sync.
+**Synced from lvgl-bindings:** the generated bindings and the `fs_driver.py` helper here are synced from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings) at the commit pinned in `LVGL_BINDINGS_COMMIT`. Do not edit them here — change them in lvgl-bindings and re-sync.
 
 > **Pip name:** `pydevices-lvgl` · **Import:** `import lvgl as lv`
 
 ```python
 import lvgl as lv
-# import display_driver  # optional; needs a PyDevices board_config
+# import display_driver  # optional; comes with pydevices, needs a board_config
 ```
 
 ## Install
@@ -27,6 +27,12 @@ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/
 ```bash
 pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
 ```
+
+**Upgrading from a wheel that still had `display_driver.py`:** upgrade
+`pydevices` and `pydevices-lvgl` in one `pip install -U pydevices pydevices-lvgl`.
+Upgraded on its own after a `pydevices` that already carries the file, pip's
+uninstall of the old `pydevices-lvgl` deletes the `display_driver.py` both
+wheels wrote; `pip install --force-reinstall --no-deps pydevices` puts it back.
 
 **Pyodide / micropip** (browser WASM; same project):
 
@@ -62,7 +68,7 @@ To build from source instead, see **[building.md](docs/building.md)**.
 
 ### 1. PyDevices Standard Quickstart (Recommended)
 
-When using `pydevices` board configs, `display_driver` sets up the display, input devices, and background timer automatically:
+When using `pydevices` board configs, pydevices' `display_driver` sets up the display, input devices, and background timer automatically. It ships in the `pydevices` wheel, not this one (it was here until 2026-10):
 
 ```python
 import display_driver  # noqa: F401 - initializes display, input, and timer
