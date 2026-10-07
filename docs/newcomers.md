@@ -9,7 +9,7 @@ MicroPython interpreter.
 The most important boundary is ownership. This repository owns the CPython
 runtime layer, packaging, tests, and release policy. The sibling
 `lvgl-bindings` repository owns the generator and canonical API decisions.
-Generated binding files and the `display_driver.py`/`fs_driver.py` helpers are
+Generated binding files and the `fs_driver.py` helper are
 vendored here at one exact upstream commit; they are inputs to this project,
 not ordinary hand-edited source files.
 
@@ -43,9 +43,9 @@ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/
 ```
 
 An application may provide its own display backend. In the PyDevices
-convenience path it imports `display_driver`, which is a synced adapter around
-`appdev.App` and `board_config`; it is deliberately outside the core extension
-and is not required for a standalone backend.
+convenience path it imports `display_driver`, pydevices' adapter around
+`appdev.App` and `board_config`. It ships in the `pydevices` wheel, outside this
+one, and is not required for a standalone backend.
 
 ## Repository map
 
@@ -57,7 +57,7 @@ and is not required for a standalone backend.
 | `lvgl/` | Pinned upstream LVGL C git submodule compiled into the extension. |
 | `lv_conf.h` | LVGL build configuration for the CPython target. |
 | `setup.py` | Defines the `lvgl` extension and compiles runtime, generated bindings, and all LVGL C sources. |
-| `display_driver.py`, `fs_driver.py` | Synced PyDevices helpers; change their canonical copies in `lvgl-bindings`. |
+| `fs_driver.py` | Synced LVGL filesystem helper; change its canonical copy in `lvgl-bindings`. |
 | `LVGL_BINDINGS_COMMIT` | Exact 40-character source commit used for the vendored binding inputs. |
 | `tests/` | Native-extension lifecycle and wheel-installation contracts. |
 | `docs/building.md` | Authoritative local build, sync, Android, and Pyodide instructions. |
@@ -80,8 +80,8 @@ label.set_text("Hello from PyDevices LVGL!")
 label.center()
 ```
 
-1. Installing the supported wheel provides the binary module named `lvgl` and
-   the bundled `display_driver` helper.
+1. Installing the supported wheel provides the binary module named `lvgl`;
+   installing `pydevices` provides the `display_driver` helper.
 2. Importing `display_driver` first establishes the PyDevices display/input
    integration. It owns LVGL ticking and refresh coordination for this path.
 3. Importing `lvgl` exposes the generated module surface and runtime support
@@ -101,7 +101,7 @@ behavior in that path are CPython runtime work. Those concerns belong in
 ## Boundaries and invariants
 
 - Do not manually edit `generated/lvgl_python.c`, `generated/lvgl.pyi`,
-  `display_driver.py`, `fs_driver.py`, or `lv_conf.h`. Change the generator or
+  `fs_driver.py`, or `lv_conf.h`. Change the generator or
   canonical helper in `lvgl-bindings`, regenerate there, then use the explicit
   sync workflow here.
 - `LVGL_BINDINGS_COMMIT` is a reproducible-source record, not a loose version

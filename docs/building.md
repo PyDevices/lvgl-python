@@ -18,7 +18,7 @@ binding sync from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings)):
 | `generated/lvgl.pyi` | Type stubs (copied into the install) |
 | `LVGL_BINDINGS_COMMIT` | Exact lvgl-bindings source commit for all vendored artifacts |
 | `lv_conf.h` | LVGL config used for the build |
-| `display_driver.py` | Optional helper (`import display_driver`) |
+| `fs_driver.py` | Optional helper (`import fs_driver`) |
 | `lvgl/` | LVGL C sources (git submodule) |
 
 A normal `pip install -e .` compiles those vendored sources. You do **not** need
@@ -89,7 +89,7 @@ lvgl-python/
 ├── generated/lvgl_python.c    # vendored binding (synced from lvgl-bindings)
 ├── generated/lvgl.pyi
 ├── lv_conf.h
-├── display_driver.py
+├── fs_driver.py
 ├── lvgl/                      # LVGL git submodule
 ├── src/lvpy_runtime.c
 ├── src/lvpy_runtime.h
