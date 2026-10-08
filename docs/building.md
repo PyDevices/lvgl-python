@@ -20,6 +20,8 @@ binding sync from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings)):
 | `lv_conf.h` | LVGL config used for the build |
 | `fs_driver.py` | Optional helper (`import fs_driver`) |
 | `lvgl/` | LVGL C sources (git submodule) |
+| `src/jpegio/` | The JPEG decoder (jpegio's, the one MicroPython and CircuitPython use) |
+| `JPEGIO_COMMIT` | Exact micropython-pydevices source commit for `src/jpegio/` |
 
 A normal `pip install -e .` compiles those vendored sources. You do **not** need
 a local `lvgl-bindings` tree to build or test this package.
@@ -49,7 +51,14 @@ To refresh vendored files from GitHub **without** a sibling clone, use:
 ```
 
 That script clones lvgl-bindings into a temp directory, copies the generated
-files, and updates the `lvgl` submodule pin. Release flow: **[publishing.md](publishing.md)**.
+files, and updates the `lvgl` submodule pin. The JPEG decoder comes the same
+way from [micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
+`modules/jpegio`, so a JPEG draws the same on every interpreter, scaled and
+contained included:
+
+```bash
+./scripts/sync_from_jpegio.sh --ref <40-character-commit-sha>
+``` Release flow: **[publishing.md](publishing.md)**.
 
 ## Requirements
 
@@ -86,6 +95,7 @@ limits).
 ```text
 lvgl-python/
 ├── LVGL_BINDINGS_COMMIT       # exact immutable source
+├── JPEGIO_COMMIT              # exact source of src/jpegio/
 ├── generated/lvgl_python.c    # vendored binding (synced from lvgl-bindings)
 ├── generated/lvgl.pyi
 ├── lv_conf.h
@@ -93,6 +103,8 @@ lvgl-python/
 ├── lvgl/                      # LVGL git submodule
 ├── src/lvpy_runtime.c
 ├── src/lvpy_runtime.h
+├── src/lvpy_jpegio.c          # registers the JPEG decoder at lv.init()
+├── src/jpegio/                # jpegio's LVGL decoder + TJpgDec (synced)
 ├── tests/                     # unit tests
 ├── scripts/                   # sync / publish / pyodide wheel
 └── setup.py

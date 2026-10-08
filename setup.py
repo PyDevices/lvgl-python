@@ -14,6 +14,8 @@ LVGL_DIR = ROOT / "lvgl"
 GENERATED = ROOT / "generated" / "lvgl_python.c"
 GENERATED_PYI = ROOT / "generated" / "lvgl.pyi"
 BINDINGS_PIN = ROOT / "LVGL_BINDINGS_COMMIT"
+JPEGIO_PIN = ROOT / "JPEGIO_COMMIT"
+JPEGIO_DIR = ROOT / "src" / "jpegio"
 
 if not GENERATED.is_file():
     raise SystemExit(
@@ -23,13 +25,22 @@ if not GENERATED.is_file():
 if not BINDINGS_PIN.is_file() or len(BINDINGS_PIN.read_text().strip()) != 40:
     raise SystemExit("LVGL_BINDINGS_COMMIT must contain the exact source commit")
 
+if not JPEGIO_PIN.is_file() or len(JPEGIO_PIN.read_text().strip()) != 40:
+    raise SystemExit("JPEGIO_COMMIT must contain the exact source commit")
+
+if not (JPEGIO_DIR / "lvgl_decoder.c").is_file():
+    raise SystemExit(
+        f"{JPEGIO_DIR} not found. Run: {ROOT / 'scripts/sync_from_jpegio.sh'}"
+    )
+
 if not (LVGL_DIR / "lvgl.h").is_file():
     raise SystemExit(
         "lvgl submodule missing. Run: git submodule update --init lvgl"
     )
 
-# LVGL's built-in TJPGD stays on for CPython (lv_conf.h: LV_USE_TJPGD 1 under
-# LV_CPYTHON_BUILD) -- CPython has no jpegio, so tjpgd.c compiles like the rest.
+# LVGL's own TJPGD is off (lv_conf.h: LV_USE_TJPGD 0), so its tjpgd.c compiles
+# to nothing. The JPEG decoder is jpegio's, from src/jpegio/ (JPEGIO_COMMIT),
+# registered by lv.init() through the LVPY_AFTER_LV_INIT hook.
 lvgl_sources = [
     os.path.relpath(p, ROOT)
     for p in (LVGL_DIR / "src").rglob("*.c")
@@ -37,16 +48,23 @@ lvgl_sources = [
 
 runtime_sources = [
     "src/lvpy_runtime.c",
+    "src/lvpy_jpegio.c",
+    "src/jpegio/lvgl_decoder.c",
+    "src/jpegio/tjpgd/tjpgd.c",
     "generated/lvgl_python.c",
 ]
 
 include_dirs = [
     str(ROOT),
     str(ROOT / "src"),
+    str(JPEGIO_DIR / "tjpgd"),
     str(LVGL_DIR),
 ]
 
-define_macros = [("LV_CPYTHON_BUILD", "1")]
+define_macros = [
+    ("LV_CPYTHON_BUILD", "1"),
+    ("LVPY_AFTER_LV_INIT", "lvpy_register_jpegio"),
+]
 
 if sys.platform == "win32":
     extra_compile_args = ["/wd4101", "/wd4244", "/wd4267", "/wd4996"]
