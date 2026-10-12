@@ -115,6 +115,13 @@ behavior in that path are CPython runtime work. Those concerns belong in
   sends `LV_EVENT_DELETE` to the runtime's hook before the user's. Dropping the
   wrapper neither stops nor leaks the callback; `tests/test_callback_lifetime.py`
   pins each case.
+- A struct's callbacks (`lv_anim_t`, `lv_timer_t`) share one dict reference,
+  owned by the struct: the generated setters pass the struct as
+  `containing_struct`. A Python-owned struct releases it in its dealloc; a
+  timer and each running copy of an animation release theirs through LVGL's
+  `ext_data` free_cb (`lvpy_timer_bind`, `lvpy_anim_bind`), which needs
+  `LV_USE_EXT_DATA`, on for the CPython build only.
+  `tests/test_struct_callback_lifetime.py` pins each case.
 - Pair `lv.init()` and `lv.deinit()` in standalone programs. Tests cover this
   lifecycle, including callback cleanup during interpreter shutdown.
 - The binding intentionally omits unsafe C signatures such as unbounded
