@@ -9220,9 +9220,9 @@ static int py_lv_font_t_setattro(PyObject *self, PyObject *name, PyObject *value
     int result = -1;
     lv_font_t saved;
     memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "get_glyph_dsc") == 0) { data->get_glyph_dsc = (void*)mp_lv_callback(value, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "get_glyph_dsc") == 0) { data->get_glyph_dsc = (void*)mp_lv_callback(value, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "get_glyph_bitmap") == 0) { data->get_glyph_bitmap = (void*)mp_lv_callback(value, NULL, "lv_font_t_get_glyph_bitmap", NULL, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "release_glyph") == 0) { data->release_glyph = (void*)mp_lv_callback(value, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "release_glyph") == 0) { data->release_glyph = (void*)mp_lv_callback(value, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "line_height") == 0) { data->line_height = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "base_line") == 0) { data->base_line = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "subpx") == 0) { data->subpx = (uint8_t)mp_obj_get_int(value); result = 0; }
@@ -10099,7 +10099,7 @@ static int py_lv_color_filter_dsc_t_setattro(PyObject *self, PyObject *name, PyO
     int result = -1;
     lv_color_filter_dsc_t saved;
     memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "filter_cb") == 0) { data->filter_cb = mp_lv_callback(value, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "filter_cb") == 0) { data->filter_cb = mp_lv_callback(value, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (PyErr_Occurred()) {
         memcpy(data, &saved, sizeof(saved));
@@ -10397,13 +10397,13 @@ static int py_lv_anim_t_setattro(PyObject *self, PyObject *name, PyObject *value
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "var") == 0) { data->var = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "exec_cb") == 0) { data->exec_cb = mp_lv_callback(value, NULL, "lv_anim_t_exec_cb", NULL, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "custom_exec_cb") == 0) { data->custom_exec_cb = mp_lv_callback(value, lv_anim_t_custom_exec_cb_callback, "lv_anim_t_custom_exec_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "start_cb") == 0) { data->start_cb = mp_lv_callback(value, lv_anim_t_start_cb_callback, "lv_anim_t_start_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "completed_cb") == 0) { data->completed_cb = mp_lv_callback(value, lv_anim_t_completed_cb_callback, "lv_anim_t_completed_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "deleted_cb") == 0) { data->deleted_cb = mp_lv_callback(value, lv_anim_t_deleted_cb_callback, "lv_anim_t_deleted_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "get_value_cb") == 0) { data->get_value_cb = mp_lv_callback(value, lv_anim_t_get_value_cb_callback, "lv_anim_t_get_value_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "custom_exec_cb") == 0) { data->custom_exec_cb = mp_lv_callback(value, lv_anim_t_custom_exec_cb_callback, "lv_anim_t_custom_exec_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "start_cb") == 0) { data->start_cb = mp_lv_callback(value, lv_anim_t_start_cb_callback, "lv_anim_t_start_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "completed_cb") == 0) { data->completed_cb = mp_lv_callback(value, lv_anim_t_completed_cb_callback, "lv_anim_t_completed_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "deleted_cb") == 0) { data->deleted_cb = mp_lv_callback(value, lv_anim_t_deleted_cb_callback, "lv_anim_t_deleted_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "get_value_cb") == 0) { data->get_value_cb = mp_lv_callback(value, lv_anim_t_get_value_cb_callback, "lv_anim_t_get_value_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "path_cb") == 0) { data->path_cb = mp_lv_callback(value, lv_anim_t_path_cb_callback, "lv_anim_t_path_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "path_cb") == 0) { data->path_cb = mp_lv_callback(value, lv_anim_t_path_cb_callback, "lv_anim_t_path_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "start_value") == 0) { data->start_value = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "current_value") == 0) { data->current_value = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "end_value") == 0) { data->end_value = (int32_t)mp_obj_get_int(value); result = 0; }
@@ -13919,7 +13919,7 @@ static int py_lv_theme_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     int result = -1;
     lv_theme_t saved;
     memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "apply_cb") == 0) { data->apply_cb = mp_lv_callback(value, lv_theme_t_apply_cb_callback, "lv_theme_t_apply_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "apply_cb") == 0) { data->apply_cb = mp_lv_callback(value, lv_theme_t_apply_cb_callback, "lv_theme_t_apply_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "parent") == 0) { data->parent = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "disp") == 0) { data->disp = (void*)mp_to_ptr(value); result = 0; }
@@ -14058,7 +14058,7 @@ static int py_lv_timer_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "period") == 0) { data->period = (uint32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "last_run") == 0) { data->last_run = (uint32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "timer_cb") == 0) { data->timer_cb = mp_lv_callback(value, lv_timer_t_timer_cb_callback, "lv_timer_t_timer_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "timer_cb") == 0) { data->timer_cb = mp_lv_callback(value, lv_timer_t_timer_cb_callback, "lv_timer_t_timer_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "repeat_count") == 0) { data->repeat_count = (int32_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "paused") == 0) { data->paused = (int)mp_obj_get_int(value); result = 0; }
@@ -14242,8 +14242,8 @@ static int py_lv_display_t_setattro(PyObject *self, PyObject *name, PyObject *va
     if (strcmp(attr, "buf_2") == 0) { data->buf_2 = (void*)mp_write_ptr_lv_draw_buf_t(value); result = 0; }
     if (strcmp(attr, "buf_3") == 0) { data->buf_3 = (void*)mp_write_ptr_lv_draw_buf_t(value); result = 0; }
     if (strcmp(attr, "buf_act") == 0) { data->buf_act = (void*)mp_write_ptr_lv_draw_buf_t(value); result = 0; }
-    if (strcmp(attr, "flush_cb") == 0) { data->flush_cb = mp_lv_callback(value, lv_display_t_flush_cb_callback, "lv_display_t_flush_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "flush_wait_cb") == 0) { data->flush_wait_cb = mp_lv_callback(value, lv_display_t_flush_wait_cb_callback, "lv_display_t_flush_wait_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "flush_cb") == 0) { data->flush_cb = mp_lv_callback(value, lv_display_t_flush_cb_callback, "lv_display_t_flush_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "flush_wait_cb") == 0) { data->flush_wait_cb = mp_lv_callback(value, lv_display_t_flush_wait_cb_callback, "lv_display_t_flush_wait_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "flushing") == 0) { data->flushing = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "flushing_last") == 0) { data->flushing_last = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "last_area") == 0) { data->last_area = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -14262,8 +14262,8 @@ static int py_lv_display_t_setattro(PyObject *self, PyObject *name, PyObject *va
     if (strcmp(attr, "_static_buf1") == 0) { data->_static_buf1 = mp_write_lv_draw_buf_t(value); result = 0; }
     if (strcmp(attr, "_static_buf2") == 0) { data->_static_buf2 = mp_write_lv_draw_buf_t(value); result = 0; }
     if (strcmp(attr, "layer_head") == 0) { data->layer_head = (void*)mp_write_ptr_lv_layer_t(value); result = 0; }
-    if (strcmp(attr, "layer_init") == 0) { data->layer_init = (void*)mp_lv_callback(value, lv_display_t_layer_init_callback, "lv_display_t_layer_init", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "layer_deinit") == 0) { data->layer_deinit = (void*)mp_lv_callback(value, lv_display_t_layer_deinit_callback, "lv_display_t_layer_deinit", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "layer_init") == 0) { data->layer_init = (void*)mp_lv_callback(value, lv_display_t_layer_init_callback, "lv_display_t_layer_init", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "layer_deinit") == 0) { data->layer_deinit = (void*)mp_lv_callback(value, lv_display_t_layer_deinit_callback, "lv_display_t_layer_deinit", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "screens") == 0) { data->screens = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "sys_layer") == 0) { data->sys_layer = (void*)mp_to_lv(value); result = 0; }
     if (strcmp(attr, "top_layer") == 0) { data->top_layer = (void*)mp_to_lv(value); result = 0; }
@@ -14512,9 +14512,9 @@ static int py_lv_obj_class_t_setattro(PyObject *self, PyObject *name, PyObject *
     lv_obj_class_t saved;
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "base_class") == 0) { data->base_class = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "constructor_cb") == 0) { data->constructor_cb = (void*)mp_lv_callback(value, lv_obj_class_t_constructor_cb_callback, "lv_obj_class_t_constructor_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "destructor_cb") == 0) { data->destructor_cb = (void*)mp_lv_callback(value, lv_obj_class_t_destructor_cb_callback, "lv_obj_class_t_destructor_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "event_cb") == 0) { data->event_cb = (void*)mp_lv_callback(value, lv_obj_class_t_event_cb_callback, "lv_obj_class_t_event_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "constructor_cb") == 0) { data->constructor_cb = (void*)mp_lv_callback(value, lv_obj_class_t_constructor_cb_callback, "lv_obj_class_t_constructor_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "destructor_cb") == 0) { data->destructor_cb = (void*)mp_lv_callback(value, lv_obj_class_t_destructor_cb_callback, "lv_obj_class_t_destructor_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "event_cb") == 0) { data->event_cb = (void*)mp_lv_callback(value, lv_obj_class_t_event_cb_callback, "lv_obj_class_t_event_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "name") == 0) { data->name = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "width_def") == 0) { data->width_def = (int32_t)mp_obj_get_int(value); result = 0; }
@@ -22822,7 +22822,7 @@ static int py_lv_observer_t_setattro(PyObject *self, PyObject *name, PyObject *v
     lv_observer_t saved;
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "subject") == 0) { data->subject = (void*)mp_write_ptr_lv_subject_t(value); result = 0; }
-    if (strcmp(attr, "cb") == 0) { data->cb = mp_lv_callback(value, lv_observer_t_cb_callback, "lv_observer_t_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "cb") == 0) { data->cb = mp_lv_callback(value, lv_observer_t_cb_callback, "lv_observer_t_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "target") == 0) { data->target = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "auto_free_user_data") == 0) { data->auto_free_user_data = (uint32_t)mp_obj_get_int(value); result = 0; }
@@ -25400,7 +25400,7 @@ static PyObject *py_lv_obj_remove_event_cb(PyObject *self, PyObject *py_args, Py
     PyObject *event_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &event_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    void *event_cb = mp_lv_callback(event_cb_py, &lv_obj_t_event_cb_callback, "lv_obj_t_event_cb", &obj->user_data, NULL, (NULL), (NULL));
+    void *event_cb = mp_lv_callback(event_cb_py, &lv_obj_t_event_cb_callback, "lv_obj_t_event_cb", &obj->user_data, obj, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
         void *_lvpy_release_ud = lvpy_peek_obj_event_cb_user_data(obj, event_cb, NULL);
     uint32_t _res;
@@ -25932,8 +25932,8 @@ static int py_lv_group_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "obj_ll") == 0) { data->obj_ll = mp_write_lv_ll_t(value); result = 0; }
     if (strcmp(attr, "obj_focus") == 0) { data->obj_focus = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "focus_cb") == 0) { data->focus_cb = mp_lv_callback(value, lv_group_t_focus_cb_callback, "lv_group_t_focus_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "edge_cb") == 0) { data->edge_cb = mp_lv_callback(value, lv_group_t_edge_cb_callback, "lv_group_t_edge_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "focus_cb") == 0) { data->focus_cb = mp_lv_callback(value, lv_group_t_focus_cb_callback, "lv_group_t_focus_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "edge_cb") == 0) { data->edge_cb = mp_lv_callback(value, lv_group_t_edge_cb_callback, "lv_group_t_edge_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (strcmp(attr, "frozen") == 0) { data->frozen = (uint8_t)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "editing") == 0) { data->editing = (uint8_t)mp_obj_get_int(value); result = 0; }
@@ -28874,10 +28874,10 @@ static int py_lv_image_decoder_t_setattro(PyObject *self, PyObject *name, PyObje
     int result = -1;
     lv_image_decoder_t saved;
     memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "info_cb") == 0) { data->info_cb = mp_lv_callback(value, lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "open_cb") == 0) { data->open_cb = mp_lv_callback(value, lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "get_area_cb") == 0) { data->get_area_cb = mp_lv_callback(value, lv_image_decoder_t_get_area_cb_callback, "lv_image_decoder_t_get_area_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "close_cb") == 0) { data->close_cb = mp_lv_callback(value, lv_image_decoder_t_close_cb_callback, "lv_image_decoder_t_close_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "info_cb") == 0) { data->info_cb = mp_lv_callback(value, lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "open_cb") == 0) { data->open_cb = mp_lv_callback(value, lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "get_area_cb") == 0) { data->get_area_cb = mp_lv_callback(value, lv_image_decoder_t_get_area_cb_callback, "lv_image_decoder_t_get_area_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "close_cb") == 0) { data->close_cb = mp_lv_callback(value, lv_image_decoder_t_close_cb_callback, "lv_image_decoder_t_close_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "custom_draw_cb") == 0) { data->custom_draw_cb = mp_lv_callback(value, NULL, "lv_image_decoder_t_custom_draw_cb", NULL, NULL, NULL, NULL); result = 0; }
     if (strcmp(attr, "name") == 0) { data->name = (void*)(char*)convert_from_str(value); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
@@ -29154,17 +29154,17 @@ static int py_lv_fs_drv_t_setattro(PyObject *self, PyObject *name, PyObject *val
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "letter") == 0) { data->letter = (char)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "cache_size") == 0) { data->cache_size = (uint32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "ready_cb") == 0) { data->ready_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_ready_cb_callback, "lv_fs_drv_t_ready_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "remove_cb") == 0) { data->remove_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_remove_cb_callback, "lv_fs_drv_t_remove_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "open_cb") == 0) { data->open_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_open_cb_callback, "lv_fs_drv_t_open_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "close_cb") == 0) { data->close_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_close_cb_callback, "lv_fs_drv_t_close_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "read_cb") == 0) { data->read_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_read_cb_callback, "lv_fs_drv_t_read_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "write_cb") == 0) { data->write_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_write_cb_callback, "lv_fs_drv_t_write_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "seek_cb") == 0) { data->seek_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_seek_cb_callback, "lv_fs_drv_t_seek_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "tell_cb") == 0) { data->tell_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_tell_cb_callback, "lv_fs_drv_t_tell_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "dir_open_cb") == 0) { data->dir_open_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_open_cb_callback, "lv_fs_drv_t_dir_open_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "dir_read_cb") == 0) { data->dir_read_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_read_cb_callback, "lv_fs_drv_t_dir_read_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "dir_close_cb") == 0) { data->dir_close_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_close_cb_callback, "lv_fs_drv_t_dir_close_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "ready_cb") == 0) { data->ready_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_ready_cb_callback, "lv_fs_drv_t_ready_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "remove_cb") == 0) { data->remove_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_remove_cb_callback, "lv_fs_drv_t_remove_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "open_cb") == 0) { data->open_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_open_cb_callback, "lv_fs_drv_t_open_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "close_cb") == 0) { data->close_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_close_cb_callback, "lv_fs_drv_t_close_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "read_cb") == 0) { data->read_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_read_cb_callback, "lv_fs_drv_t_read_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "write_cb") == 0) { data->write_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_write_cb_callback, "lv_fs_drv_t_write_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "seek_cb") == 0) { data->seek_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_seek_cb_callback, "lv_fs_drv_t_seek_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "tell_cb") == 0) { data->tell_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_tell_cb_callback, "lv_fs_drv_t_tell_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "dir_open_cb") == 0) { data->dir_open_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_open_cb_callback, "lv_fs_drv_t_dir_open_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "dir_read_cb") == 0) { data->dir_read_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_read_cb_callback, "lv_fs_drv_t_dir_read_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "dir_close_cb") == 0) { data->dir_close_cb = (void*)mp_lv_callback(value, lv_fs_drv_t_dir_close_cb_callback, "lv_fs_drv_t_dir_close_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
     if (PyErr_Occurred()) {
         memcpy(data, &saved, sizeof(saved));
@@ -30325,7 +30325,7 @@ static PyObject *py_lv_image_decoder_set_info_cb(PyObject *self, PyObject *py_ar
     PyObject *info_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &info_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *decoder = mp_to_lv(self);
-    void *info_cb = mp_lv_callback(info_cb_py, &lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *info_cb = mp_lv_callback(info_cb_py, &lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -30384,7 +30384,7 @@ static PyObject *py_lv_image_decoder_set_open_cb(PyObject *self, PyObject *py_ar
     PyObject *open_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &open_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *decoder = mp_to_lv(self);
-    void *open_cb = mp_lv_callback(open_cb_py, &lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *open_cb = mp_lv_callback(open_cb_py, &lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -30445,7 +30445,7 @@ static PyObject *py_lv_image_decoder_set_get_area_cb(PyObject *self, PyObject *p
     PyObject *read_line_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &read_line_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *decoder = mp_to_lv(self);
-    void *read_line_cb = mp_lv_callback(read_line_cb_py, &lv_image_decoder_t_read_line_cb_callback, "lv_image_decoder_t_read_line_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *read_line_cb = mp_lv_callback(read_line_cb_py, &lv_image_decoder_t_read_line_cb_callback, "lv_image_decoder_t_read_line_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -30502,7 +30502,7 @@ static PyObject *py_lv_image_decoder_set_close_cb(PyObject *self, PyObject *py_a
     PyObject *close_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &close_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *decoder = mp_to_lv(self);
-    void *close_cb = mp_lv_callback(close_cb_py, &lv_image_decoder_t_close_cb_callback, "lv_image_decoder_t_close_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *close_cb = mp_lv_callback(close_cb_py, &lv_image_decoder_t_close_cb_callback, "lv_image_decoder_t_close_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -32744,7 +32744,7 @@ static PyObject *py_lv_animimg_set_start_cb(PyObject *self, PyObject *py_args, P
     PyObject *start_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &start_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    void *start_cb = mp_lv_callback(start_cb_py, &lv_obj_t_start_cb_callback, "lv_obj_t_start_cb", &obj->user_data, NULL, (NULL), (NULL));
+    void *start_cb = mp_lv_callback(start_cb_py, &lv_obj_t_start_cb_callback, "lv_obj_t_start_cb", &obj->user_data, obj, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -32800,7 +32800,7 @@ static PyObject *py_lv_animimg_set_completed_cb(PyObject *self, PyObject *py_arg
     PyObject *completed_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &completed_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    void *completed_cb = mp_lv_callback(completed_cb_py, &lv_obj_t_completed_cb_callback, "lv_obj_t_completed_cb", &obj->user_data, NULL, (NULL), (NULL));
+    void *completed_cb = mp_lv_callback(completed_cb_py, &lv_obj_t_completed_cb_callback, "lv_obj_t_completed_cb", &obj->user_data, obj, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -54395,7 +54395,7 @@ static int py_lv_indev_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     lv_indev_t saved;
     memcpy(&saved, data, sizeof(saved));
     if (strcmp(attr, "type") == 0) { data->type = (int)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "read_cb") == 0) { data->read_cb = mp_lv_callback(value, lv_indev_t_read_cb_callback, "lv_indev_t_read_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "read_cb") == 0) { data->read_cb = mp_lv_callback(value, lv_indev_t_read_cb_callback, "lv_indev_t_read_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "state") == 0) { data->state = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "prev_state") == 0) { data->prev_state = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "mode") == 0) { data->mode = (int)mp_obj_get_int(value); result = 0; }
@@ -54423,7 +54423,7 @@ static int py_lv_indev_t_setattro(PyObject *self, PyObject *name, PyObject *valu
     if (strcmp(attr, "btn_points") == 0) { data->btn_points = (void*)mp_write_ptr_lv_point_t(value); result = 0; }
     if (strcmp(attr, "event_list") == 0) { data->event_list = mp_write_lv_event_list_t(value); result = 0; }
     if (strcmp(attr, "scroll_throw_anim") == 0) { data->scroll_throw_anim = (void*)mp_write_ptr_lv_anim_t(value); result = 0; }
-    if (strcmp(attr, "key_remap_cb") == 0) { data->key_remap_cb = mp_lv_callback(value, lv_indev_t_key_remap_cb_callback, "lv_indev_t_key_remap_cb", &data->user_data, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "key_remap_cb") == 0) { data->key_remap_cb = mp_lv_callback(value, lv_indev_t_key_remap_cb_callback, "lv_indev_t_key_remap_cb", &data->user_data, data, NULL, NULL); result = 0; }
     if (strcmp(attr, "recognizers") == 0) { memcpy((void*)&data->recognizers, mp_to_ptr(value), sizeof(lv_indev_gesture_recognizer_t)*LV_INDEV_GESTURE_CNT); result = 0; }
     if (strcmp(attr, "cur_gesture") == 0) { data->cur_gesture = (int)mp_obj_get_int(value); result = 0; }
     if (strcmp(attr, "gesture_data") == 0) { memcpy((void*)&data->gesture_data, mp_to_ptr(value), sizeof(void *)*LV_INDEV_GESTURE_CNT); result = 0; }
@@ -58375,7 +58375,7 @@ static PyObject *py_lv_timer_create(PyObject *self, PyObject *py_args, PyObject 
     lvpy_lock();
     _res = ((lv_timer_t *(*)(lv_timer_cb_t, uint32_t, void *))lv_timer_create)(timer_xcb, period, user_data);
     lvpy_unlock();
-    
+        lvpy_timer_bind(_res);
     PyGILState_Release(gstate);
     return mp_read_ptr_lv_timer_t((void*)_res);
 }
@@ -66622,7 +66622,7 @@ static PyObject *py_lv_color_filter_dsc_init_struct_method(PyObject *self, PyObj
     PyObject *cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_color_filter_dsc_t *dsc = (lv_color_filter_dsc_t *)mp_write_ptr_lv_color_filter_dsc_t(self);
-    void *cb = mp_lv_callback(cb_py, &lv_color_filter_dsc_t_cb_callback, "lv_color_filter_dsc_t_cb", &dsc->user_data, NULL, (NULL), (NULL));
+    void *cb = mp_lv_callback(cb_py, &lv_color_filter_dsc_t_cb_callback, "lv_color_filter_dsc_t_cb", &dsc->user_data, dsc, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -66986,7 +66986,7 @@ static PyObject *py_lv_anim_set_custom_exec_cb_struct_method(PyObject *self, PyO
     PyObject *exec_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &exec_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *exec_cb = mp_lv_callback(exec_cb_py, &lv_anim_t_exec_cb_callback, "lv_anim_t_exec_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *exec_cb = mp_lv_callback(exec_cb_py, &lv_anim_t_exec_cb_callback, "lv_anim_t_exec_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -67044,7 +67044,7 @@ static PyObject *py_lv_anim_set_path_cb_struct_method(PyObject *self, PyObject *
     PyObject *path_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &path_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *path_cb = mp_lv_callback(path_cb_py, &lv_anim_t_path_cb_callback, "lv_anim_t_path_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *path_cb = mp_lv_callback(path_cb_py, &lv_anim_t_path_cb_callback, "lv_anim_t_path_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -67100,7 +67100,7 @@ static PyObject *py_lv_anim_set_start_cb_struct_method(PyObject *self, PyObject 
     PyObject *start_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &start_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *start_cb = mp_lv_callback(start_cb_py, &lv_anim_t_start_cb_callback, "lv_anim_t_start_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *start_cb = mp_lv_callback(start_cb_py, &lv_anim_t_start_cb_callback, "lv_anim_t_start_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -67158,7 +67158,7 @@ static PyObject *py_lv_anim_set_get_value_cb_struct_method(PyObject *self, PyObj
     PyObject *get_value_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &get_value_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *get_value_cb = mp_lv_callback(get_value_cb_py, &lv_anim_t_get_value_cb_callback, "lv_anim_t_get_value_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *get_value_cb = mp_lv_callback(get_value_cb_py, &lv_anim_t_get_value_cb_callback, "lv_anim_t_get_value_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -67214,7 +67214,7 @@ static PyObject *py_lv_anim_set_completed_cb_struct_method(PyObject *self, PyObj
     PyObject *completed_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &completed_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *completed_cb = mp_lv_callback(completed_cb_py, &lv_anim_t_completed_cb_callback, "lv_anim_t_completed_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *completed_cb = mp_lv_callback(completed_cb_py, &lv_anim_t_completed_cb_callback, "lv_anim_t_completed_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -67270,7 +67270,7 @@ static PyObject *py_lv_anim_set_deleted_cb_struct_method(PyObject *self, PyObjec
     PyObject *deleted_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &deleted_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *deleted_cb = mp_lv_callback(deleted_cb_py, &lv_anim_t_deleted_cb_callback, "lv_anim_t_deleted_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *deleted_cb = mp_lv_callback(deleted_cb_py, &lv_anim_t_deleted_cb_callback, "lv_anim_t_deleted_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -67548,7 +67548,7 @@ static PyObject *py_lv_anim_start_struct_method(PyObject *self, PyObject *py_arg
     lvpy_lock();
     _res = ((lv_anim_t *(*)(const lv_anim_t *))lv_anim_start)(a);
     lvpy_unlock();
-    
+        lvpy_anim_bind(_res);
     PyGILState_Release(gstate);
     return mp_read_ptr_lv_anim_t((void*)_res);
 }
@@ -67717,7 +67717,7 @@ static PyObject *py_lv_anim_custom_delete_struct_method(PyObject *self, PyObject
     PyObject *exec_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &exec_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *exec_cb = mp_lv_callback(exec_cb_py, &lv_anim_t_exec_cb_callback, "lv_anim_t_exec_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *exec_cb = mp_lv_callback(exec_cb_py, &lv_anim_t_exec_cb_callback, "lv_anim_t_exec_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     bool _res;
@@ -67748,7 +67748,7 @@ static PyObject *py_lv_anim_custom_get_struct_method(PyObject *self, PyObject *p
     PyObject *exec_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &exec_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_anim_t *a = (lv_anim_t *)mp_write_ptr_lv_anim_t(self);
-    void *exec_cb = mp_lv_callback(exec_cb_py, &lv_anim_t_exec_cb_callback, "lv_anim_t_exec_cb", &a->user_data, NULL, (NULL), (NULL));
+    void *exec_cb = mp_lv_callback(exec_cb_py, &lv_anim_t_exec_cb_callback, "lv_anim_t_exec_cb", &a->user_data, a, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lv_anim_t * _res;
@@ -68897,7 +68897,7 @@ static PyObject *py_lv_display_set_flush_cb_struct_method(PyObject *self, PyObje
     PyObject *flush_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &flush_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_display_t *disp = (lv_display_t *)mp_write_ptr_lv_display_t(self);
-    void *flush_cb = mp_lv_callback(flush_cb_py, &lv_display_t_flush_cb_callback, "lv_display_t_flush_cb", &disp->user_data, NULL, (NULL), (NULL));
+    void *flush_cb = mp_lv_callback(flush_cb_py, &lv_display_t_flush_cb_callback, "lv_display_t_flush_cb", &disp->user_data, disp, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -68953,7 +68953,7 @@ static PyObject *py_lv_display_set_flush_wait_cb_struct_method(PyObject *self, P
     PyObject *wait_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &wait_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_display_t *disp = (lv_display_t *)mp_write_ptr_lv_display_t(self);
-    void *wait_cb = mp_lv_callback(wait_cb_py, &lv_display_t_wait_cb_callback, "lv_display_t_wait_cb", &disp->user_data, NULL, (NULL), (NULL));
+    void *wait_cb = mp_lv_callback(wait_cb_py, &lv_display_t_wait_cb_callback, "lv_display_t_wait_cb", &disp->user_data, disp, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -74830,7 +74830,7 @@ static PyObject *py_lv_theme_set_apply_cb_struct_method(PyObject *self, PyObject
     PyObject *apply_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &apply_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_theme_t *theme = (lv_theme_t *)mp_write_ptr_lv_theme_t(self);
-    void *apply_cb = mp_lv_callback(apply_cb_py, &lv_theme_t_apply_cb_callback, "lv_theme_t_apply_cb", &theme->user_data, NULL, (NULL), (NULL));
+    void *apply_cb = mp_lv_callback(apply_cb_py, &lv_theme_t_apply_cb_callback, "lv_theme_t_apply_cb", &theme->user_data, theme, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -75007,13 +75007,13 @@ static PyObject *py_lv_timer_set_cb_struct_method(PyObject *self, PyObject *py_a
     PyObject *timer_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &timer_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_timer_t *timer = (lv_timer_t *)mp_write_ptr_lv_timer_t(self);
-    void *timer_cb = mp_lv_callback(timer_cb_py, &lv_timer_t_timer_cb_callback, "lv_timer_t_timer_cb", &timer->user_data, NULL, (NULL), (NULL));
+    void *timer_cb = mp_lv_callback(timer_cb_py, &lv_timer_t_timer_cb_callback, "lv_timer_t_timer_cb", &timer->user_data, timer, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
     ((void (*)(lv_timer_t *, lv_timer_cb_t))lv_timer_set_cb)(timer, timer_cb);
     lvpy_unlock();
-    
+        lvpy_timer_bind(timer);
     PyGILState_Release(gstate);
     Py_RETURN_NONE;
 }
@@ -83128,7 +83128,7 @@ static PyObject *py_lv_group_set_focus_cb_struct_method(PyObject *self, PyObject
     PyObject *focus_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &focus_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_group_t *group = (lv_group_t *)mp_write_ptr_lv_group_t(self);
-    void *focus_cb = mp_lv_callback(focus_cb_py, &lv_group_t_focus_cb_callback, "lv_group_t_focus_cb", &group->user_data, NULL, (NULL), (NULL));
+    void *focus_cb = mp_lv_callback(focus_cb_py, &lv_group_t_focus_cb_callback, "lv_group_t_focus_cb", &group->user_data, group, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -83185,7 +83185,7 @@ static PyObject *py_lv_group_set_edge_cb_struct_method(PyObject *self, PyObject 
     PyObject *edge_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &edge_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_group_t *group = (lv_group_t *)mp_write_ptr_lv_group_t(self);
-    void *edge_cb = mp_lv_callback(edge_cb_py, &lv_group_t_edge_cb_callback, "lv_group_t_edge_cb", &group->user_data, NULL, (NULL), (NULL));
+    void *edge_cb = mp_lv_callback(edge_cb_py, &lv_group_t_edge_cb_callback, "lv_group_t_edge_cb", &group->user_data, group, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -84210,7 +84210,7 @@ static PyObject *py_lv_image_decoder_set_info_cb_struct_method(PyObject *self, P
     PyObject *info_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &info_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_image_decoder_t *decoder = (lv_image_decoder_t *)mp_write_ptr_lv_image_decoder_t(self);
-    void *info_cb = mp_lv_callback(info_cb_py, &lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *info_cb = mp_lv_callback(info_cb_py, &lv_image_decoder_t_info_cb_callback, "lv_image_decoder_t_info_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -84240,7 +84240,7 @@ static PyObject *py_lv_image_decoder_set_open_cb_struct_method(PyObject *self, P
     PyObject *open_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &open_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_image_decoder_t *decoder = (lv_image_decoder_t *)mp_write_ptr_lv_image_decoder_t(self);
-    void *open_cb = mp_lv_callback(open_cb_py, &lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *open_cb = mp_lv_callback(open_cb_py, &lv_image_decoder_t_open_cb_callback, "lv_image_decoder_t_open_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -84270,7 +84270,7 @@ static PyObject *py_lv_image_decoder_set_get_area_cb_struct_method(PyObject *sel
     PyObject *read_line_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &read_line_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_image_decoder_t *decoder = (lv_image_decoder_t *)mp_write_ptr_lv_image_decoder_t(self);
-    void *read_line_cb = mp_lv_callback(read_line_cb_py, &lv_image_decoder_t_read_line_cb_callback, "lv_image_decoder_t_read_line_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *read_line_cb = mp_lv_callback(read_line_cb_py, &lv_image_decoder_t_read_line_cb_callback, "lv_image_decoder_t_read_line_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -84300,7 +84300,7 @@ static PyObject *py_lv_image_decoder_set_close_cb_struct_method(PyObject *self, 
     PyObject *close_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &close_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_image_decoder_t *decoder = (lv_image_decoder_t *)mp_write_ptr_lv_image_decoder_t(self);
-    void *close_cb = mp_lv_callback(close_cb_py, &lv_image_decoder_t_close_cb_callback, "lv_image_decoder_t_close_cb", &decoder->user_data, NULL, (NULL), (NULL));
+    void *close_cb = mp_lv_callback(close_cb_py, &lv_image_decoder_t_close_cb_callback, "lv_image_decoder_t_close_cb", &decoder->user_data, decoder, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -88576,7 +88576,7 @@ static PyObject *py_lv_indev_set_read_cb_struct_method(PyObject *self, PyObject 
     PyObject *read_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &read_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_indev_t *indev = (lv_indev_t *)mp_write_ptr_lv_indev_t(self);
-    void *read_cb = mp_lv_callback(read_cb_py, &lv_indev_t_read_cb_callback, "lv_indev_t_read_cb", &indev->user_data, NULL, (NULL), (NULL));
+    void *read_cb = mp_lv_callback(read_cb_py, &lv_indev_t_read_cb_callback, "lv_indev_t_read_cb", &indev->user_data, indev, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();
@@ -89903,7 +89903,7 @@ static PyObject *py_lv_indev_set_key_remap_cb_struct_method(PyObject *self, PyOb
     PyObject *remap_cb_py;
     if (!PyArg_ParseTuple(py_args, "O", &remap_cb_py)) { PyGILState_Release(gstate); return NULL; }
     lv_indev_t *indev = (lv_indev_t *)mp_write_ptr_lv_indev_t(self);
-    void *remap_cb = mp_lv_callback(remap_cb_py, &lv_indev_t_remap_cb_callback, "lv_indev_t_remap_cb", &indev->user_data, NULL, (NULL), (NULL));
+    void *remap_cb = mp_lv_callback(remap_cb_py, &lv_indev_t_remap_cb_callback, "lv_indev_t_remap_cb", &indev->user_data, indev, (NULL), (NULL));
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
     lvpy_lock();

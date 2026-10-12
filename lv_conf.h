@@ -45,6 +45,12 @@
  */
 #if defined(LV_CPYTHON_BUILD)
 #define LV_USE_STDLIB_MALLOC    LV_STDLIB_CLIB
+/* ext_data gives timers and animations a free_cb that LVGL calls on every
+ * path that frees them; lvgl-python's runtime releases a Python callback
+ * dict there. CPython only: the GC-heap allocators on the other two targets
+ * reclaim the dict by reachability, and the generator never sees this
+ * (PYCPARSER leaves it off), so the API model is unchanged. */
+#define LV_USE_EXT_DATA 1
 #elif defined(LV_CIRCUITPYTHON_BUILD)
 #define LV_USE_STDLIB_MALLOC    LV_STDLIB_CIRCUITPYTHON_OVERRIDE
 #else
