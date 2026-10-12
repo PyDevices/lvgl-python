@@ -15,6 +15,9 @@ static int lvgl_lock_depth = 0;
 static int lvpy_nesting_count = 0;
 static int lvpy_lock_save_key = -1;
 
+static void lvpy_drain_pending_releases_if_idle(void);
+static void lvpy_unlock_nodrain(void);
+
 typedef struct {
     PyTypeObject *type;
     size_t size;
@@ -39,7 +42,7 @@ void lvpy_lock(void)
     lvgl_lock_depth = 1;
 }
 
-void lvpy_unlock(void)
+static void lvpy_unlock_nodrain(void)
 {
     if (!lvgl_lock || lvgl_lock_depth == 0) {
         return;
@@ -55,6 +58,15 @@ void lvpy_unlock(void)
     }
 }
 
+/* Every generated wrapper unlocks after its LVGL call, with the GIL held.
+ * That is the safe moment to let go of callback dicts whose registrations
+ * ended inside the call (see lvpy_release_callback_user_data). */
+void lvpy_unlock(void)
+{
+    lvpy_unlock_nodrain();
+    lvpy_drain_pending_releases_if_idle();
+}
+
 void lvpy_release_lock_for_python(void)
 {
     long tid = PyThread_get_thread_ident();
@@ -68,7 +80,7 @@ void lvpy_release_lock_for_python(void)
         PyThread_set_key_value(lvpy_lock_save_key, (void *)(intptr_t)lvgl_lock_depth);
     }
     while (lvgl_lock_depth > 0) {
-        lvpy_unlock();
+        lvpy_unlock_nodrain();
     }
 }
 
@@ -595,6 +607,16 @@ static PyObject *py_C_Pointer_new(PyTypeObject *type, PyObject *args, PyObject *
 
 static void py_lv_delete_cb(lv_event_t *e);
 
+static int lvpy_obj_has_event_cb(lv_obj_t *lv_obj, lv_event_cb_t cb)
+{
+    uint32_t count = lv_obj_get_event_count(lv_obj);
+    for (uint32_t i = 0; i < count; i++) {
+        lv_event_dsc_t *dsc = lv_obj_get_event_dsc(lv_obj, i);
+        if (dsc && lv_event_dsc_get_cb(dsc) == cb) return 1;
+    }
+    return 0;
+}
+
 PyTypeObject *py_get_base_obj_type(void)
 {
     return py_lv_obj_types[0] ? py_lv_obj_types[0]->py_type : NULL;
@@ -619,7 +641,11 @@ PyObject *lv_to_mp(lv_obj_t *lv_obj)
         self->lv_obj = lv_obj;
         self->callbacks = NULL;
         lv_obj->user_data = self;
-        lv_obj_add_event_cb(lv_obj, py_lv_delete_cb, LV_EVENT_DELETE, NULL);
+        /* A wrapper that was dropped and recreated must not stack a second
+         * delete hook on the object; the first one is still registered. */
+        if (!lvpy_obj_has_event_cb(lv_obj, py_lv_delete_cb)) {
+            lv_obj_add_event_cb(lv_obj, py_lv_delete_cb, LV_EVENT_DELETE, NULL);
+        }
         /* PyObject_New → refcnt 1; return transfers that new reference. */
         return (PyObject *)self;
     }
@@ -759,13 +785,56 @@ int lvpy_is_per_registration_callback_dict(void *user_data)
     return 0;
 }
 
+/* Dicts whose registration has ended but whose reference cannot be dropped
+ * yet. LVGL sends LV_EVENT_DELETE to every descriptor in order, and the
+ * runtime's own hook is the first one on the object, so a user DELETE
+ * callback on the same object still reads its dict after py_lv_delete_cb
+ * has run. A callback may also delete its own widget or remove its own
+ * event while the trampoline holds a borrowed reference into the dict. So
+ * the DECREF waits until no LVGL call and no Python callback is in flight:
+ * the outermost wrapper's unlock, or a release made at top level. */
+static PyObject **lvpy_pending_releases = NULL;
+static size_t lvpy_pending_len = 0;
+static size_t lvpy_pending_cap = 0;
+
+static void lvpy_drain_pending_releases_if_idle(void)
+{
+    if (lvgl_lock_depth != 0 || lvpy_nesting_count != 0) return;
+    if (lvpy_pending_len == 0) return;
+    if (LVPY_IS_FINALIZING()) return;
+    /* Take the batch first: a __del__ run by a DECREF may call back into
+     * LVGL and reach here again. */
+    PyObject **batch = lvpy_pending_releases;
+    size_t count = lvpy_pending_len;
+    lvpy_pending_releases = NULL;
+    lvpy_pending_len = 0;
+    lvpy_pending_cap = 0;
+    for (size_t i = 0; i < count; i++) {
+        Py_DECREF(batch[i]);
+    }
+    free(batch);
+}
+
+static void lvpy_defer_release(PyObject *obj)
+{
+    if (lvpy_pending_len == lvpy_pending_cap) {
+        size_t cap = lvpy_pending_cap ? lvpy_pending_cap * 2 : 32;
+        PyObject **grown = (PyObject **)realloc(lvpy_pending_releases, cap * sizeof(PyObject *));
+        if (!grown) return; /* leak this one rather than crash */
+        lvpy_pending_releases = grown;
+        lvpy_pending_cap = cap;
+    }
+    lvpy_pending_releases[lvpy_pending_len++] = obj;
+}
+
 void lvpy_release_callback_user_data(void *user_data)
 {
     /* Belt on top of the registry: once Py_FinalizeEx() is tearing the
      * interpreter down, skip the DECREF and leak; the OS reclaims it. */
     if (LVPY_IS_FINALIZING()) return;
     if (user_data && lvpy_registry_remove(user_data)) {
-        Py_DECREF((PyObject *)user_data);
+        lvpy_defer_release((PyObject *)user_data);
+        lvpy_drain_pending_releases_if_idle();
     }
 }
 
@@ -867,13 +936,17 @@ void *mp_lv_callback(PyObject *py_callback, void *lv_callback, const char *callb
     if (lv_callback && py_callback && PyCallable_Check(py_callback)) {
         void *user_data = NULL;
         if (user_data_ptr) {
+            /* The registration owns one reference to its dict, released by
+             * lvpy_release_callback_user_data when the event is removed or
+             * the object deleted. A fresh dict is born with that reference;
+             * a dict the caller supplied gets one taken here. */
             if (!*user_data_ptr) {
                 *user_data_ptr = PyDict_New();
                 if (!*user_data_ptr) return NULL;
-                Py_INCREF((PyObject *)*user_data_ptr);
                 lvpy_register_callback_dict(*user_data_ptr);
             } else if (PyDict_Check((PyObject *)*user_data_ptr)) {
                 Py_INCREF((PyObject *)*user_data_ptr);
+                lvpy_register_callback_dict(*user_data_ptr);
             }
             user_data = *user_data_ptr;
         } else if (get_user_data && set_user_data) {
@@ -887,8 +960,9 @@ void *mp_lv_callback(PyObject *py_callback, void *lv_callback, const char *callb
         if (user_data) {
             PyObject *callbacks = get_callback_dict_from_user_data(user_data);
             if (callbacks) {
+                /* The dict's own reference is the only one the callback
+                 * needs: it lives exactly as long as the registration. */
                 PyDict_SetItemString(callbacks, callback_name, py_callback);
-                Py_INCREF(py_callback);
             }
         }
         return lv_callback;

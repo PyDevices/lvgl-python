@@ -107,10 +107,14 @@ behavior in that path are CPython runtime work. Those concerns belong in
 - `LVGL_BINDINGS_COMMIT` is a reproducible-source record, not a loose version
   hint. A sync accepts an immutable full commit SHA or release tag and records
   the resolved 40-character commit.
-- Keep a Python reference to any widget that owns callbacks for as long as
-  LVGL may call them. With `user_data=None`, callback state is retained on the
-  wrapper, but an application that drops the widget can still lose the Python
-  object it needs.
+- A callback registered with `add_event_cb` is owned by its registration, not
+  by the widget's Python wrapper: `mp_lv_callback` stores it in a dict that
+  LVGL's event descriptor points at, and the runtime drops that dict's one
+  reference when the event is removed or the object deleted. The drop is
+  deferred until no LVGL call or Python callback is in flight, because LVGL
+  sends `LV_EVENT_DELETE` to the runtime's hook before the user's. Dropping the
+  wrapper neither stops nor leaks the callback; `tests/test_callback_lifetime.py`
+  pins each case.
 - Pair `lv.init()` and `lv.deinit()` in standalone programs. Tests cover this
   lifecycle, including callback cleanup during interpreter shutdown.
 - The binding intentionally omits unsafe C signatures such as unbounded
