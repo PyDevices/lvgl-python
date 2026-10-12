@@ -1,4 +1,5 @@
 #include "lvpy_runtime.h"
+#include "lvgl/src/lvgl_private.h"
 #include <stdint.h>
 
 PyObject *PyLvReferenceError = NULL;
@@ -530,6 +531,7 @@ PyObject *lv_to_mp_struct_own(PyTypeObject *type, void *lv_struct)
 void py_lv_struct_dealloc(py_lv_struct_t *self)
 {
     if (self->data && self->owns_data) {
+        lvpy_release_struct_holder(self->data);
         free(self->data);
         self->data = NULL;
     }
@@ -748,39 +750,78 @@ PyObject *get_callback_dict_from_user_data(void *user_data)
  * into an LVGL heap block). Never type-guess: a pointer is releasable iff
  * we recorded it at creation. All access happens with the GIL held
  * (mp_lv_callback runs from Python; py_lv_delete_cb takes the GIL). */
-static void **lvpy_dict_registry = NULL;
+/* Each entry is one reference we own on a callback dict, on behalf of one
+ * holder. An event registration's holder is NULL: lv_obj_add_event_cb and
+ * friends take one reference per call and release it by dict pointer. A
+ * struct's holder is the struct itself (the containing_struct that the
+ * generated setters pass): every callback set on that struct shares one
+ * reference, released when the struct's owner lets go of it -- the Python
+ * wrapper's dealloc for a struct it owns, LVGL's ext_data free_cb for a
+ * timer or a running animation. */
+typedef struct {
+    PyObject *dict;
+    void *holder;
+} lvpy_dict_entry_t;
+
+static lvpy_dict_entry_t *lvpy_dict_registry = NULL;
 static size_t lvpy_dict_registry_len = 0;
 static size_t lvpy_dict_registry_cap = 0;
 
-void lvpy_register_callback_dict(void *user_data)
+static void lvpy_registry_add(void *user_data, void *holder)
 {
     if (!user_data) return;
     if (lvpy_dict_registry_len == lvpy_dict_registry_cap) {
         size_t cap = lvpy_dict_registry_cap ? lvpy_dict_registry_cap * 2 : 32;
-        void **grown = (void **)realloc(lvpy_dict_registry, cap * sizeof(void *));
+        lvpy_dict_entry_t *grown = (lvpy_dict_entry_t *)realloc(
+            lvpy_dict_registry, cap * sizeof(lvpy_dict_entry_t));
         if (!grown) return; /* untracked dict leaks at release time; safe */
         lvpy_dict_registry = grown;
         lvpy_dict_registry_cap = cap;
     }
-    lvpy_dict_registry[lvpy_dict_registry_len++] = user_data;
+    lvpy_dict_registry[lvpy_dict_registry_len].dict = (PyObject *)user_data;
+    lvpy_dict_registry[lvpy_dict_registry_len].holder = holder;
+    lvpy_dict_registry_len++;
 }
 
-static int lvpy_registry_remove(void *user_data)
+void lvpy_register_callback_dict(void *user_data)
+{
+    lvpy_registry_add(user_data, NULL);
+}
+
+static void lvpy_registry_drop(size_t i)
+{
+    lvpy_dict_registry[i] = lvpy_dict_registry[--lvpy_dict_registry_len];
+}
+
+static int lvpy_registry_has(void *user_data, void *holder)
 {
     for (size_t i = 0; i < lvpy_dict_registry_len; i++) {
-        if (lvpy_dict_registry[i] == user_data) {
-            lvpy_dict_registry[i] = lvpy_dict_registry[--lvpy_dict_registry_len];
-            return 1;
-        }
+        if (lvpy_dict_registry[i].dict == (PyObject *)user_data &&
+            lvpy_dict_registry[i].holder == holder) return 1;
     }
     return 0;
+}
+
+/* Remove one entry for the dict: an event registration's (holder NULL) if
+ * there is one, else any. Returns 1 if an entry was removed. */
+static int lvpy_registry_remove(void *user_data)
+{
+    size_t found = lvpy_dict_registry_len;
+    for (size_t i = 0; i < lvpy_dict_registry_len; i++) {
+        if (lvpy_dict_registry[i].dict != (PyObject *)user_data) continue;
+        if (lvpy_dict_registry[i].holder == NULL) { found = i; break; }
+        if (found == lvpy_dict_registry_len) found = i;
+    }
+    if (found == lvpy_dict_registry_len) return 0;
+    lvpy_registry_drop(found);
+    return 1;
 }
 
 int lvpy_is_per_registration_callback_dict(void *user_data)
 {
     if (!user_data) return 0;
     for (size_t i = 0; i < lvpy_dict_registry_len; i++) {
-        if (lvpy_dict_registry[i] == user_data) return 1;
+        if (lvpy_dict_registry[i].dict == (PyObject *)user_data) return 1;
     }
     return 0;
 }
@@ -836,6 +877,86 @@ void lvpy_release_callback_user_data(void *user_data)
         lvpy_defer_release((PyObject *)user_data);
         lvpy_drain_pending_releases_if_idle();
     }
+}
+
+void lvpy_release_struct_holder(void *holder)
+{
+    if (!holder || LVPY_IS_FINALIZING()) return;
+    int released = 0;
+    for (size_t i = 0; i < lvpy_dict_registry_len;) {
+        if (lvpy_dict_registry[i].holder == holder) {
+            lvpy_defer_release(lvpy_dict_registry[i].dict);
+            lvpy_registry_drop(i);
+            released = 1;
+        } else {
+            i++;
+        }
+    }
+    if (released) lvpy_drain_pending_releases_if_idle();
+}
+
+/* A timer created with a Python callback: lv_timer_create registered the
+ * dict as an event-style entry (holder NULL) before the timer existed. Make
+ * the timer its holder, and let LVGL release it on every path that frees
+ * the timer. Also the hook for lv_timer_set_cb on a timer LVGL created. */
+#if LV_USE_EXT_DATA
+static void lvpy_timer_ext_free(void *data)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    lvpy_release_struct_holder(data);
+    PyGILState_Release(gstate);
+}
+
+static void lvpy_anim_ext_free(void *data)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    lvpy_release_struct_holder(data);
+    PyGILState_Release(gstate);
+}
+#endif
+
+void lvpy_timer_bind(lv_timer_t *timer)
+{
+#if LV_USE_EXT_DATA
+    if (!timer || !timer->user_data) return;
+    void *dict = timer->user_data;
+    if (!lvpy_registry_has(dict, timer)) {
+        size_t i;
+        for (i = 0; i < lvpy_dict_registry_len; i++) {
+            if (lvpy_dict_registry[i].dict == (PyObject *)dict &&
+                lvpy_dict_registry[i].holder == NULL) break;
+        }
+        if (i == lvpy_dict_registry_len) return; /* not our dict */
+        lvpy_dict_registry[i].holder = timer;
+    }
+    lv_timer_set_external_data(timer, timer, lvpy_timer_ext_free);
+#else
+    (void)timer;
+#endif
+}
+
+/* lv_anim_start copied the Python-owned struct, dict pointer included, into
+ * LVGL's list. The running copy takes its own reference, released by LVGL's
+ * free_cb when the animation completes or is deleted; the Python struct keeps
+ * its reference so the animation can be started again from it. */
+void lvpy_anim_bind(lv_anim_t *anim)
+{
+#if LV_USE_EXT_DATA
+    if (!anim) return;
+    void *dict = anim->user_data;
+    if (dict && lvpy_is_per_registration_callback_dict(dict)) {
+        if (!lvpy_registry_has(dict, anim)) {
+            Py_INCREF((PyObject *)dict);
+            lvpy_registry_add(dict, anim);
+        }
+        lv_anim_set_external_data(anim, anim, lvpy_anim_ext_free);
+    } else {
+        /* Whatever ext_data the copy inherited belongs to another holder. */
+        lv_anim_set_external_data(anim, NULL, NULL);
+    }
+#else
+    (void)anim;
+#endif
 }
 
 static void *lvpy_peek_event_dsc_list_cb_user_data(
@@ -932,28 +1053,32 @@ void *mp_lv_callback(PyObject *py_callback, void *lv_callback, const char *callb
     void **user_data_ptr, void *containing_struct,
     void *(*get_user_data)(void *), void (*set_user_data)(void *, void *))
 {
-    (void)containing_struct;
     if (lv_callback && py_callback && PyCallable_Check(py_callback)) {
         void *user_data = NULL;
         if (user_data_ptr) {
-            /* The registration owns one reference to its dict, released by
-             * lvpy_release_callback_user_data when the event is removed or
-             * the object deleted. A fresh dict is born with that reference;
-             * a dict the caller supplied gets one taken here. */
+            /* The holder owns one reference to its dict. For an event
+             * registration (containing_struct NULL) that is the registration
+             * itself, released by lvpy_release_callback_user_data when the
+             * event is removed or the object deleted; each call is a new
+             * holder. For a struct field it is the struct: its callbacks
+             * share one reference, released with the struct. A fresh dict is
+             * born with that reference; a dict already there gets one taken,
+             * unless this struct holds it already. */
             if (!*user_data_ptr) {
                 *user_data_ptr = PyDict_New();
                 if (!*user_data_ptr) return NULL;
-                lvpy_register_callback_dict(*user_data_ptr);
-            } else if (PyDict_Check((PyObject *)*user_data_ptr)) {
+                lvpy_registry_add(*user_data_ptr, containing_struct);
+            } else if (PyDict_Check((PyObject *)*user_data_ptr) &&
+                       !(containing_struct && lvpy_registry_has(*user_data_ptr, containing_struct))) {
                 Py_INCREF((PyObject *)*user_data_ptr);
-                lvpy_register_callback_dict(*user_data_ptr);
+                lvpy_registry_add(*user_data_ptr, containing_struct);
             }
             user_data = *user_data_ptr;
         } else if (get_user_data && set_user_data) {
             user_data = get_user_data(containing_struct);
             if (!user_data) {
                 user_data = PyDict_New();
-                lvpy_register_callback_dict(user_data);
+                lvpy_registry_add(user_data, containing_struct);
                 set_user_data(containing_struct, user_data);
             }
         }
