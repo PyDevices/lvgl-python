@@ -24,8 +24,9 @@ py-modules = ["fs_driver"]
 build = "cp311-* cp312-* cp313-* cp314-* cp315-* cp315t-*"
 # 3.15 and 3.15t on Linux and Windows only, for now.
 skip = "*musllinux* *-macosx_* *-win32 cp315*-android_* cp315*-pyodide_*"
-# On free-threaded builds, importing lvgl must leave the GIL off.
-test-command = "python -c \"import sys, lvgl as lv; lv.init(); lv.deinit(); assert not getattr(sys, '_is_gil_enabled', lambda: False)(), 'importing lvgl enabled the GIL'\""
+# On free-threaded builds, importing lvgl must leave the GIL off. Regular
+# builds always have the GIL, so the check applies only where Py_GIL_DISABLED.
+test-command = "python -c \"import sys, sysconfig, lvgl as lv; lv.init(); lv.deinit(); assert not (sysconfig.get_config_var('Py_GIL_DISABLED') and sys._is_gil_enabled()), 'importing lvgl enabled the GIL'\""
 # cp314: import test passes then segfaults on interpreter shutdown after lv.deinit()
 test-skip = "cp314-*"
 
