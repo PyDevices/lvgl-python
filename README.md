@@ -143,7 +143,8 @@ Struct-backed APIs, including displays, use methods consistently on all three ru
 
 - **Unsafe C signatures are intentionally absent.** Variadic and unbounded pointer-to-pointer APIs are omitted unless the generator has a reviewed safe conversion.
 - **Target exceptions are explicit.** The shared API manifest records the small set of LVGL features unavailable on a particular runtime.
-- **A callback lives as long as its registration.** `add_event_cb(handler, ...)` holds your handler (and a `user_data` dict, if you pass one) until the widget is deleted or the event is removed; then the binding lets them go. Dropping your Python reference to the widget does not stop the callback while the widget exists,, and a handler may delete its own widget. Callbacks set on an `lv.anim_t` live while the Python struct or a running copy of it exists; a timer's callback lives while the timer does.
+- **A callback lives as long as its registration.** `add_event_cb(handler, ...)` holds your handler (and a `user_data` dict, if you pass one) until the widget is deleted or the event is removed; then the binding lets them go. Dropping your Python reference to the widget does not stop the callback while the widget exists, and a handler may delete its own widget. Callbacks set on an `lv.anim_t` live while the Python struct or a running copy of it exists; a timer's callback lives while the timer does.
+- **One thread drives LVGL.** Make every `lvgl` call on one thread, and let go of every `lvgl` object there. Other threads can run any Python that doesn't touch `lvgl`; on a free-threaded build they run in parallel with drawing. See [docs/threads.md](docs/threads.md).
 
 ## Links
 

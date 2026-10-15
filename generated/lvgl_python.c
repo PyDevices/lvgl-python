@@ -93462,6 +93462,12 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     if (m == NULL) {
         return NULL;
     }
+#ifdef Py_GIL_DISABLED
+    if (PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED) < 0) {
+        Py_DECREF(m);
+        return NULL;
+    }
+#endif
     if (PyModule_AddIntConstant(m, "DPI_DEF", ENUM_LV_DPI_DEF) < 0) return NULL;
     if (PyModule_AddIntConstant(m, "DRAW_BUF_STRIDE_ALIGN", ENUM_LV_DRAW_BUF_STRIDE_ALIGN) < 0) return NULL;
     if (PyModule_AddIntConstant(m, "DRAW_BUF_ALIGN", ENUM_LV_DRAW_BUF_ALIGN) < 0) return NULL;
