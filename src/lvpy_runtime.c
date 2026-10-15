@@ -18,6 +18,7 @@ static int lvpy_lock_save_key = -1;
 
 static void lvpy_drain_pending_releases_if_idle(void);
 static void lvpy_unlock_nodrain(void);
+static void lvpy_defer_release(PyObject *obj);
 
 typedef struct {
     PyTypeObject *type;
@@ -283,7 +284,9 @@ static PyObject *py_lv_struct_cast(PyObject *cls, PyObject *args)
         return NULL;
     }
     void *ptr = mp_to_ptr(ptr_obj);
+    lvpy_drain_pending_releases_if_idle();
     if (!ptr) {
+        if (PyErr_Occurred()) return NULL;
         Py_RETURN_NONE;
     }
     py_lv_struct_t *out = PyObject_New(py_lv_struct_t, (PyTypeObject *)type_obj);
@@ -302,8 +305,18 @@ static PyObject *py_lv_cast_instance(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O", &ptr_obj)) {
         return NULL;
     }
-    ((py_lv_struct_t *)self)->data = mp_to_ptr(ptr_obj);
-    return self;
+    void *ptr = mp_to_ptr(ptr_obj);
+    lvpy_drain_pending_releases_if_idle();
+    if (!ptr && PyErr_Occurred()) return NULL;
+    py_lv_struct_t *s = (py_lv_struct_t *)self;
+    if (s->data && s->owns_data && s->data != ptr) {
+        /* The struct now views someone else's memory: let go of its own. */
+        lvpy_release_struct_holder(s->data);
+        free(s->data);
+    }
+    if (s->data != ptr) s->owns_data = 0;
+    s->data = ptr;
+    return Py_NewRef(self);
 }
 
 static PyMethodDef py_base_struct_methods[] = {
@@ -705,12 +718,22 @@ void *mp_to_ptr(PyObject *obj)
         return ((py_lv_struct_t *)obj)->data;
     }
     if (PyObject_CheckBuffer(obj)) {
-        Py_buffer view;
-        if (PyObject_GetBuffer(obj, &view, PyBUF_SIMPLE) == 0) {
-            void *p = view.buf;
-            PyBuffer_Release(&view);
-            return p;
+        /* The pointer is only valid while the buffer is exported. Hold the
+         * export in a memoryview until the outermost LVGL call returns, so
+         * Python code run during the call (an event callback, say) can't
+         * resize or free the memory LVGL is reading. */
+        PyObject *view = PyMemoryView_FromObject(obj);
+        if (!view) return NULL;
+        Py_buffer *b = PyMemoryView_GET_BUFFER(view);
+        if (!PyBuffer_IsContiguous(b, 'C')) {
+            Py_DECREF(view);
+            PyErr_Format(PyExc_BufferError, "'%s' buffer is not contiguous",
+                Py_TYPE(obj)->tp_name);
+            return NULL;
         }
+        void *p = b->buf;
+        lvpy_defer_release(view);
+        return p;
     }
     if (PyUnicode_Check(obj)) {
         return (void *)PyUnicode_AsUTF8(obj);
@@ -1102,7 +1125,11 @@ PyObject *mp_lv_funcptr(PyObject *wrapper, void *lv_fun, void *lv_callback,
     if (!lv_fun) Py_RETURN_NONE;
     if (lv_fun == lv_callback) {
         PyObject *callbacks = get_callback_dict_from_user_data(user_data);
-        if (callbacks) return PyDict_GetItemString(callbacks, func_name);
+        if (callbacks) {
+            /* The dict owns its value: return a reference of our own. */
+            PyObject *cb = PyDict_GetItemString(callbacks, func_name);
+            if (cb) return Py_NewRef(cb);
+        }
     }
     Py_RETURN_NONE;
 }
