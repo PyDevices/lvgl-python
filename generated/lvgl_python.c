@@ -14824,16 +14824,22 @@ static lv_obj_tree_walk_res_t lv_obj_tree_walk_cb_callback(lv_obj_t *arg0, void 
     if (!callbacks) { PyGILState_Release(gstate); return (lv_obj_tree_walk_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_tree_walk_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_obj_tree_walk_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = lv_to_mp((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_obj_tree_walk_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_obj_tree_walk_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_obj_tree_walk_res_t){0}; }
     lv_obj_tree_walk_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -25192,15 +25198,20 @@ static void lv_obj_add_event_cb_event_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_add_event_cb_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -25374,15 +25385,20 @@ static void lv_obj_t_event_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_t_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -25431,15 +25447,20 @@ static void lv_obj_remove_event_cb_with_user_data_event_cb_callback(lv_event_t *
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_remove_event_cb_with_user_data_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -30295,17 +30316,24 @@ static lv_result_t lv_image_decoder_t_info_cb_callback(lv_image_decoder_t *arg0,
     if (!callbacks) { PyGILState_Release(gstate); return (lv_result_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_image_decoder_t_info_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_image_decoder_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_image_decoder_dsc_t((void*)arg1);
     PyObject *py_arg2 = mp_read_ptr_lv_image_header_t((void*)arg2);
-    PyObject *py_args = PyTuple_Pack(3, py_arg0, py_arg1, py_arg2);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lv_result_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -30355,16 +30383,22 @@ static lv_result_t lv_image_decoder_t_open_cb_callback(lv_image_decoder_t *arg0,
     if (!callbacks) { PyGILState_Release(gstate); return (lv_result_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_image_decoder_t_open_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_image_decoder_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_image_decoder_dsc_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lv_result_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -30414,18 +30448,26 @@ static lv_result_t lv_image_decoder_t_read_line_cb_callback(lv_image_decoder_t *
     if (!callbacks) { PyGILState_Release(gstate); return (lv_result_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_image_decoder_t_read_line_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_image_decoder_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_image_decoder_dsc_t((void*)arg1);
     PyObject *py_arg2 = mp_read_ptr_lv_area_t((void*)arg2);
     PyObject *py_arg3 = mp_read_ptr_lv_area_t((void*)arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lv_result_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -30475,16 +30517,22 @@ static void lv_image_decoder_t_close_cb_callback(lv_image_decoder_t *arg0, lv_im
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_image_decoder_t_close_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_image_decoder_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_image_decoder_dsc_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -32718,15 +32766,20 @@ static void lv_obj_t_start_cb_callback(lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_t_start_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -32774,15 +32827,20 @@ static void lv_obj_t_completed_cb_callback(lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_t_completed_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -56210,15 +56268,20 @@ static void lv_thread_init_callback_callback(void *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_thread_init_callback");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = ptr_to_mp((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -58340,15 +58403,20 @@ static void lv_timer_create_timer_xcb_callback(lv_timer_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_timer_create_timer_xcb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_timer_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -58964,15 +59032,20 @@ static void lv_async_call_async_xcb_callback(void *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_async_call_async_xcb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = ptr_to_mp((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -59022,15 +59095,20 @@ static void lv_async_call_cancel_async_xcb_callback(void *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_async_call_cancel_async_xcb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = ptr_to_mp((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -60678,16 +60756,22 @@ static void lv_layout_register_cb_callback(lv_obj_t *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_layout_register_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = lv_to_mp((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -63261,19 +63345,28 @@ static const void * lv_imgfont_create_path_cb_callback(const lv_font_t *arg0, ui
     if (!callbacks) { PyGILState_Release(gstate); return NULL; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_imgfont_create_path_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return NULL; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
     PyObject *py_arg1 = mp_obj_new_int_from_uint(arg1);
     PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
     PyObject *py_arg3 = mp_array_from_i32ptr((void*)arg3);
     PyObject *py_arg4 = ptr_to_mp((void*)arg4);
-    PyObject *py_args = PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4);
-    if (!py_args) { PyGILState_Release(gstate); return NULL; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3 && py_arg4) ? PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    Py_XDECREF(py_arg4);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return NULL; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return NULL; }
     const void * _c_res = mp_to_ptr(result);
     Py_DECREF(result);
@@ -66592,17 +66685,24 @@ static lv_color_t lv_color_filter_dsc_t_cb_callback(const struct _lv_color_filte
     if (!callbacks) { PyGILState_Release(gstate); return (lv_color_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_color_filter_dsc_t_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_color_filter_dsc_t((void*)arg0);
     PyObject *py_arg1 = mp_read_lv_color_t(arg1);
     PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
-    PyObject *py_args = PyTuple_Pack(3, py_arg0, py_arg1, py_arg2);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_color_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_color_t){0}; }
     lv_color_t _c_res = mp_write_lv_color_t(result);
     Py_DECREF(result);
@@ -66959,16 +67059,22 @@ static void lv_anim_t_exec_cb_callback(lv_anim_t *arg0, int32_t arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_exec_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
     PyObject *py_arg1 = mp_obj_new_int(arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -67016,15 +67122,20 @@ static int32_t lv_anim_t_path_cb_callback(const lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_path_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
     int32_t _c_res = (int32_t)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -67074,15 +67185,20 @@ static void lv_anim_t_start_cb_callback(lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_start_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -67130,15 +67246,20 @@ static int32_t lv_anim_t_get_value_cb_callback(lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_get_value_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
     int32_t _c_res = (int32_t)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -67188,15 +67309,20 @@ static void lv_anim_t_completed_cb_callback(lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_completed_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -67244,15 +67370,20 @@ static void lv_anim_t_deleted_cb_callback(lv_anim_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_deleted_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -68056,15 +68187,20 @@ static int32_t lv_style_transition_dsc_init_path_cb_callback(const lv_anim_t *ar
     if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_style_transition_dsc_init_path_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
     int32_t _c_res = (int32_t)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -68869,17 +69005,24 @@ static void lv_display_t_flush_cb_callback(lv_display_t *arg0, const lv_area_t *
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_t_flush_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_display_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_area_t((void*)arg1);
     PyObject *py_arg2 = mp_array_from_u8ptr((void*)arg2);
-    PyObject *py_args = PyTuple_Pack(3, py_arg0, py_arg1, py_arg2);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -68927,15 +69070,20 @@ static void lv_display_t_wait_cb_callback(lv_display_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_t_wait_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_display_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -69449,15 +69597,20 @@ static void lv_display_add_event_cb_event_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_add_event_cb_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -69598,15 +69751,20 @@ static void lv_display_remove_event_cb_with_user_data_event_cb_callback(lv_event
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_remove_event_cb_with_user_data_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -69920,15 +70078,20 @@ static void lv_display_register_vsync_event_event_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_register_vsync_event_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -69978,15 +70141,20 @@ static void lv_display_unregister_vsync_event_event_cb_callback(lv_event_t *arg0
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_unregister_vsync_event_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -73862,15 +74030,20 @@ static void lv_event_add_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_event_add_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -74803,16 +74976,22 @@ static void lv_theme_t_apply_cb_callback(lv_theme_t *arg0, lv_obj_t *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_theme_t_apply_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_theme_t((void*)arg0);
     PyObject *py_arg1 = lv_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -74981,15 +75160,20 @@ static void lv_timer_t_timer_cb_callback(lv_timer_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_timer_t_timer_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_timer_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -81078,16 +81262,22 @@ static void lv_subject_add_observer_observer_cb_callback(lv_observer_t *arg0, lv
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_subject_add_observer_observer_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_observer_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_subject_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -81137,16 +81327,22 @@ static void lv_subject_add_observer_obj_observer_cb_callback(lv_observer_t *arg0
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_subject_add_observer_obj_observer_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_observer_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_subject_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -81197,16 +81393,22 @@ static void lv_subject_add_observer_with_target_observer_cb_callback(lv_observer
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_subject_add_observer_with_target_observer_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_observer_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_subject_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -83102,15 +83304,20 @@ static void lv_group_t_focus_cb_callback(lv_group_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_group_t_focus_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_group_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -83158,16 +83365,22 @@ static void lv_group_t_edge_cb_callback(lv_group_t *arg0, bool arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_group_t_edge_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_group_t((void*)arg0);
     PyObject *py_arg1 = convert_to_bool(arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -85275,16 +85488,22 @@ static bool lv_cache_set_create_cb_alloc_cb_callback(void *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_cache_set_create_cb_alloc_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = ptr_to_mp((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -85335,16 +85554,22 @@ static void lv_cache_set_free_cb_free_cb_callback(void *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_cache_set_free_cb_free_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = ptr_to_mp((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -87498,18 +87723,26 @@ static bool lv_circle_buf_fill_fill_cb_callback(void *arg0, uint32_t arg1, int32
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_circle_buf_fill_fill_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = ptr_to_mp((void*)arg0);
     PyObject *py_arg1 = mp_obj_new_int_from_uint(arg1);
     PyObject *py_arg2 = mp_obj_new_int(arg2);
     PyObject *py_arg3 = ptr_to_mp((void*)arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -87703,16 +87936,22 @@ static bool lv_tree_walk_cb_callback(const lv_tree_node_t *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_tree_walk_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_tree_node_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -87732,16 +87971,22 @@ static bool lv_tree_walk_bcb_callback(const lv_tree_node_t *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_tree_walk_bcb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_tree_node_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -87761,16 +88006,22 @@ static void lv_tree_walk_acb_callback(const lv_tree_node_t *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_tree_walk_acb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_tree_node_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -88549,16 +88800,22 @@ static void lv_indev_t_read_cb_callback(lv_indev_t *arg0, lv_indev_data_t *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_indev_t_read_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_indev_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_indev_data_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -89634,15 +89891,20 @@ static void lv_indev_add_event_cb_event_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_indev_add_event_cb_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -89784,15 +90046,20 @@ static void lv_indev_remove_event_cb_with_user_data_event_cb_callback(lv_event_t
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_indev_remove_event_cb_with_user_data_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -89874,16 +90141,22 @@ static lv_key_t lv_indev_t_remap_cb_callback(lv_indev_t *arg0, lv_key_t arg1)
     if (!callbacks) { PyGILState_Release(gstate); return (lv_key_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_indev_t_remap_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_key_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_indev_t((void*)arg0);
     PyObject *py_arg1 = mp_obj_new_int(arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_key_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_key_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_key_t){0}; }
     lv_key_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -91726,18 +91999,26 @@ static bool lv_font_t_get_glyph_dsc_callback(const lv_font_t *arg0, lv_font_glyp
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_t_get_glyph_dsc");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_font_glyph_dsc_t((void*)arg1);
     PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
     PyObject *py_arg3 = mp_obj_new_int_from_uint(arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -91764,16 +92045,22 @@ static void lv_font_t_release_glyph_callback(const lv_font_t *arg0, lv_font_glyp
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_t_release_glyph");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_font_glyph_dsc_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -91791,17 +92078,24 @@ static lv_color_t lv_color_filter_dsc_t_filter_cb_callback(const struct _lv_colo
     if (!callbacks) { PyGILState_Release(gstate); return (lv_color_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_color_filter_dsc_t_filter_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_color_filter_dsc_t((void*)arg0);
     PyObject *py_arg1 = mp_read_lv_color_t(arg1);
     PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
-    PyObject *py_args = PyTuple_Pack(3, py_arg0, py_arg1, py_arg2);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_color_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_color_t){0}; }
     lv_color_t _c_res = mp_write_lv_color_t(result);
     Py_DECREF(result);
@@ -91821,16 +92115,22 @@ static void lv_anim_t_custom_exec_cb_callback(lv_anim_t *arg0, int32_t arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_anim_t_custom_exec_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
     PyObject *py_arg1 = mp_obj_new_int(arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -91848,15 +92148,20 @@ static int32_t lv_style_transition_dsc_t_path_xcb_callback(const lv_anim_t *arg0
     if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_style_transition_dsc_t_path_xcb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
     int32_t _c_res = (int32_t)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -91925,15 +92230,20 @@ static void lv_display_t_flush_wait_cb_callback(lv_display_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_t_flush_wait_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_display_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -91979,15 +92289,20 @@ static void lv_draw_unit_t_event_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_draw_unit_t_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92005,16 +92320,22 @@ static void lv_display_t_layer_init_callback(lv_display_t *arg0, lv_layer_t *arg
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_t_layer_init");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_display_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_layer_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92032,16 +92353,22 @@ static void lv_display_t_layer_deinit_callback(lv_display_t *arg0, lv_layer_t *a
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_display_t_layer_deinit");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_display_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_layer_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92059,16 +92386,22 @@ static void lv_obj_class_t_constructor_cb_callback(const lv_obj_class_t *arg0, l
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_class_t_constructor_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_obj_class_t((void*)arg0);
     PyObject *py_arg1 = lv_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92086,16 +92419,22 @@ static void lv_obj_class_t_destructor_cb_callback(const lv_obj_class_t *arg0, lv
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_class_t_destructor_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_obj_class_t((void*)arg0);
     PyObject *py_arg1 = lv_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92113,16 +92452,22 @@ static void lv_obj_class_t_event_cb_callback(const lv_obj_class_t *arg0, lv_even
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_class_t_event_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_obj_class_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_event_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92140,16 +92485,22 @@ static void lv_observer_t_cb_callback(lv_observer_t *arg0, lv_subject_t *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_observer_t_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_observer_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_subject_t((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92167,15 +92518,20 @@ static void lv_event_dsc_t_cb_callback(lv_event_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_event_dsc_t_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_event_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92193,15 +92549,20 @@ static int32_t lv_obj_style_transition_dsc_t_path_cb_callback(const lv_anim_t *a
     if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_obj_style_transition_dsc_t_path_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
     int32_t _c_res = (int32_t)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92221,18 +92582,26 @@ static lv_result_t lv_image_decoder_t_get_area_cb_callback(lv_image_decoder_t *a
     if (!callbacks) { PyGILState_Release(gstate); return (lv_result_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_image_decoder_t_get_area_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_image_decoder_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_image_decoder_dsc_t((void*)arg1);
     PyObject *py_arg2 = mp_read_ptr_lv_area_t((void*)arg2);
     PyObject *py_arg3 = mp_read_ptr_lv_area_t((void*)arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_result_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_result_t){0}; }
     lv_result_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92252,19 +92621,28 @@ static void lv_image_decoder_t_custom_draw_cb_callback(lv_layer_t *arg0, const l
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_image_decoder_t_custom_draw_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_layer_t((void*)arg0);
     PyObject *py_arg1 = mp_read_ptr_lv_image_decoder_dsc_t((void*)arg1);
     PyObject *py_arg2 = mp_read_ptr_lv_area_t((void*)arg2);
     PyObject *py_arg3 = mp_read_ptr_lv_draw_image_dsc_t((void*)arg3);
     PyObject *py_arg4 = mp_read_ptr_lv_area_t((void*)arg4);
-    PyObject *py_args = PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3 && py_arg4) ? PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    Py_XDECREF(py_arg4);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92282,15 +92660,20 @@ static bool lv_fs_drv_t_ready_cb_callback(lv_fs_drv_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_ready_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -92310,15 +92693,20 @@ static void lv_fs_drv_t_remove_cb_callback(lv_fs_drv_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_remove_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92336,17 +92724,24 @@ static void * lv_fs_drv_t_open_cb_callback(lv_fs_drv_t *arg0, const char *arg1, 
     if (!callbacks) { PyGILState_Release(gstate); return NULL; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_open_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return NULL; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = convert_to_str((void*)arg1);
     PyObject *py_arg2 = mp_obj_new_int(arg2);
-    PyObject *py_args = PyTuple_Pack(3, py_arg0, py_arg1, py_arg2);
-    if (!py_args) { PyGILState_Release(gstate); return NULL; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return NULL; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return NULL; }
     void * _c_res = mp_to_ptr(result);
     Py_DECREF(result);
@@ -92366,16 +92761,22 @@ static lv_fs_res_t lv_fs_drv_t_close_cb_callback(lv_fs_drv_t *arg0, void *arg1)
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_close_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92395,19 +92796,28 @@ static lv_fs_res_t lv_fs_drv_t_read_cb_callback(lv_fs_drv_t *arg0, void *arg1, v
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_read_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
     PyObject *py_arg2 = ptr_to_mp((void*)arg2);
     PyObject *py_arg3 = mp_obj_new_int_from_uint(arg3);
     PyObject *py_arg4 = mp_array_from_u32ptr((void*)arg4);
-    PyObject *py_args = PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3 && py_arg4) ? PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    Py_XDECREF(py_arg4);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92427,19 +92837,28 @@ static lv_fs_res_t lv_fs_drv_t_write_cb_callback(lv_fs_drv_t *arg0, void *arg1, 
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_write_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
     PyObject *py_arg2 = ptr_to_mp((void*)arg2);
     PyObject *py_arg3 = mp_obj_new_int_from_uint(arg3);
     PyObject *py_arg4 = mp_array_from_u32ptr((void*)arg4);
-    PyObject *py_args = PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3 && py_arg4) ? PyTuple_Pack(5, py_arg0, py_arg1, py_arg2, py_arg3, py_arg4) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    Py_XDECREF(py_arg4);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92459,18 +92878,26 @@ static lv_fs_res_t lv_fs_drv_t_seek_cb_callback(lv_fs_drv_t *arg0, void *arg1, u
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_seek_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
     PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
     PyObject *py_arg3 = mp_obj_new_int(arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92490,17 +92917,24 @@ static lv_fs_res_t lv_fs_drv_t_tell_cb_callback(lv_fs_drv_t *arg0, void *arg1, u
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_tell_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
     PyObject *py_arg2 = mp_array_from_u32ptr((void*)arg2);
-    PyObject *py_args = PyTuple_Pack(3, py_arg0, py_arg1, py_arg2);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92520,16 +92954,22 @@ static void * lv_fs_drv_t_dir_open_cb_callback(lv_fs_drv_t *arg0, const char *ar
     if (!callbacks) { PyGILState_Release(gstate); return NULL; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_dir_open_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return NULL; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = convert_to_str((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return NULL; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return NULL; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return NULL; }
     void * _c_res = mp_to_ptr(result);
     Py_DECREF(result);
@@ -92549,18 +92989,26 @@ static lv_fs_res_t lv_fs_drv_t_dir_read_cb_callback(lv_fs_drv_t *arg0, void *arg
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_dir_read_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
     PyObject *py_arg2 = convert_to_str((void*)arg2);
     PyObject *py_arg3 = mp_obj_new_int_from_uint(arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92580,16 +93028,22 @@ static lv_fs_res_t lv_fs_drv_t_dir_close_cb_callback(lv_fs_drv_t *arg0, void *ar
     if (!callbacks) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_fs_drv_t_dir_close_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_fs_drv_t((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_fs_res_t){0}; }
     lv_fs_res_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92728,15 +93182,20 @@ static void lv_font_class_t_delete_cb_callback(lv_font_t *arg0)
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_class_t_delete_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
-    PyObject *py_args = PyTuple_Pack(1, py_arg0);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92775,16 +93234,22 @@ static void lv_layout_callbacks_t_layout_update_cb_callback(lv_obj_t *arg0, void
     if (!callbacks) { PyGILState_Release(gstate); return; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_layout_callbacks_t_layout_update_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = lv_to_mp((void*)arg0);
     PyObject *py_arg1 = ptr_to_mp((void*)arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
@@ -92802,18 +93267,26 @@ static bool lv_layout_callbacks_t_get_min_size_cb_callback(lv_obj_t *arg0, int32
     if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_layout_callbacks_t_get_min_size_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = lv_to_mp((void*)arg0);
     PyObject *py_arg1 = mp_array_from_i32ptr((void*)arg1);
     PyObject *py_arg2 = convert_to_bool(arg2);
     PyObject *py_arg3 = ptr_to_mp((void*)arg3);
-    PyObject *py_args = PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3);
-    if (!py_args) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
     bool _c_res = mp_obj_is_true(result);
     Py_DECREF(result);
@@ -92833,16 +93306,22 @@ static lv_key_t lv_indev_t_key_remap_cb_callback(lv_indev_t *arg0, lv_key_t arg1
     if (!callbacks) { PyGILState_Release(gstate); return (lv_key_t){0}; }
     PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_indev_t_key_remap_cb");
     if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_key_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
     PyObject *py_arg0 = mp_read_ptr_lv_indev_t((void*)arg0);
     PyObject *py_arg1 = mp_obj_new_int(arg1);
-    PyObject *py_args = PyTuple_Pack(2, py_arg0, py_arg1);
-    if (!py_args) { PyGILState_Release(gstate); return (lv_key_t){0}; }
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_key_t){0}; }
     lvpy_release_lock_for_python();
     lvpy_nesting_inc();
     PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
     lvpy_nesting_dec();
     lvpy_reacquire_lock_after_python();
-    Py_DECREF(py_args);
     if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_key_t){0}; }
     lv_key_t _c_res = (int)mp_obj_get_int(result);
     Py_DECREF(result);
@@ -92983,6 +93462,12 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     if (m == NULL) {
         return NULL;
     }
+#ifdef Py_GIL_DISABLED
+    if (PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED) < 0) {
+        Py_DECREF(m);
+        return NULL;
+    }
+#endif
     if (PyModule_AddIntConstant(m, "DPI_DEF", ENUM_LV_DPI_DEF) < 0) return NULL;
     if (PyModule_AddIntConstant(m, "DRAW_BUF_STRIDE_ALIGN", ENUM_LV_DRAW_BUF_STRIDE_ALIGN) < 0) return NULL;
     if (PyModule_AddIntConstant(m, "DRAW_BUF_ALIGN", ENUM_LV_DRAW_BUF_ALIGN) < 0) return NULL;
