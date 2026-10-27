@@ -18,8 +18,8 @@ packages = []
 py-modules = ["fs_driver"]
 
 # Wheel CI: one wheel per CPython minor (cp311…cp315, plus free-threaded cp315t) × Linux + Windows,
-# and cp313–cp314 for Android and Pyodide — see README.
-# Local reproduction: docs/publishing.md § "Local wheel builds (cibuildwheel)" (Linux needs Docker).
+# and cp313–cp314 for Android and Pyodide; see the install page of the LVGL docs.
+# Local reproduction: CONTRIBUTING.md, "Check a wheel locally" (Linux needs Docker).
 [tool.cibuildwheel]
 build = "cp311-* cp312-* cp313-* cp314-* cp315-* cp315t-*"
 # 3.15 and 3.15t on Linux and Windows only, for now.

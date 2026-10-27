@@ -6,12 +6,10 @@ on:
     branches: [main]
     paths-ignore:
       - '**.md'
-      - 'docs/**'
       - 'LICENSE'
   pull_request:
     paths-ignore:
       - '**.md'
-      - 'docs/**'
       - 'LICENSE'
 
 permissions:
