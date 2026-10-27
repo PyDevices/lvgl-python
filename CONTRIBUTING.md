@@ -38,16 +38,16 @@ lvgl-python/
 
 | Component | Role |
 |-----------|------|
-| `generated/lvgl_python.c` | Types, methods, module functions and callbacks |
-| `src/lvpy_runtime.c`, `src/lvpy_runtime.h` | Object wrappers (`py_lv_obj_t` maps an `lv_obj_t *` to Python and keeps its callback dicts), struct wrappers (`py_lv_struct_t`), conversion helpers, locking, GIL handling and callback ownership |
+| [`generated/lvgl_python.c`](generated/lvgl_python.c) | Types, methods, module functions and callbacks |
+| [`src/lvpy_runtime.c`](src/lvpy_runtime.c), [`src/lvpy_runtime.h`](src/lvpy_runtime.h) | Object wrappers (`py_lv_obj_t` maps an `lv_obj_t *` to Python and keeps its callback dicts), struct wrappers (`py_lv_struct_t`), conversion helpers, locking, GIL handling and callback ownership |
 | `setup.py` | Defines the `lvgl` extension and compiles the runtime, the generated binding and all the LVGL C sources |
 | `lvgl-bindings` | The generator, not needed to compile |
 
-Do not edit `generated/lvgl_python.c`, `generated/lvgl.pyi`, `fs_driver.py` or
+Do not edit `generated/lvgl_python.c`, [`generated/lvgl.pyi`](generated/lvgl.pyi), `fs_driver.py` or
 `lv_conf.h` here. Change the generator or the canonical helper in
 lvgl-bindings, regenerate there, and sync. Read `src/lvpy_runtime.h` first, then
 follow one call from `import lvgl` into `generated/lvgl_python.c` and back
-through `src/lvpy_runtime.c`; `tests/test_lvgl_init.py` is short and shows the
+through `src/lvpy_runtime.c`; [`tests/test_lvgl_init.py`](tests/test_lvgl_init.py) is short and shows the
 lifecycle contract the runtime has to keep.
 
 ## Build and test
@@ -61,7 +61,7 @@ has the toolchain and the editable install. Then:
 
 The tests cover the recorded bindings source, the installed `lvgl.pyi` stub,
 initialization and deinitialization, widget creation, callback lifetime
-(`tests/test_callback_lifetime.py`, `tests/test_struct_callback_lifetime.py`)
+([`tests/test_callback_lifetime.py`](tests/test_callback_lifetime.py), [`tests/test_struct_callback_lifetime.py`](tests/test_struct_callback_lifetime.py))
 and teardown at interpreter exit. After changing native code
 (`src/lvpy_runtime.c` or `generated/lvgl_python.c`), reinstall the editable
 build before you test: an editable install doesn't recompile on import.
