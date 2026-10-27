@@ -1,161 +1,43 @@
+![A blue button reading Hello from LVGL on a light gray background](docs/images/hello.png)
+
 # lvgl-python
 
-Native CPython extension for [LVGL](https://lvgl.io/), generated from [`lvgl-bindings`](https://github.com/PyDevices/lvgl-bindings) with **no MicroPython interpreter**.
-
-This is the publishing endpoint in the LVGL family: it turns synced bindings into versioned `pydevices-lvgl` wheels on TestPyPI. See [lvgl-bindings — The LVGL family](https://github.com/PyDevices/lvgl-bindings#the-lvgl-family) for how the family fits together.
-
-**Synced from lvgl-bindings:** the generated bindings and the `fs_driver.py` helper here are synced from [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings) at the commit pinned in `LVGL_BINDINGS_COMMIT`. Do not edit them here — change them in lvgl-bindings and re-sync.
-
-> **Pip name:** `pydevices-lvgl` · **Import:** `import lvgl as lv`
-
-```python
-import lvgl as lv
-# import display_driver  # optional; comes with pydevices, needs a board_config
-```
-
-## Install
-
-Prebuilt wheels are published as **`pydevices-lvgl`** on [TestPyPI](https://test.pypi.org/project/pydevices-lvgl/) (import as `lvgl`). CI builds a separate wheel for each CPython minor (3.11–3.15, plus the free-threaded 3.15t) on Linux x86_64 and Windows x64, **Android** wheels for **3.13–3.14** (`android_21_arm64_v8a`, `android_21_x86_64` per [PEP 738](https://peps.python.org/pep-0738/); cibuildwheel has no `armeabi_v7a` yet), plus a **Pyodide** `pyemscripten_2026_0_wasm32` wheel (`cp314`) — pip/micropip select the tag that matches your interpreter.
-
-**Android (python-for-android / PyDevices):** install the matching wheel from TestPyPI when building an APK, or let the `pydeviceslvgl` p4a recipe fetch it (see [android-template](https://github.com/PyDevices/android-template)):
+lvgl-python is the part of OmniPython that puts LVGL in CPython: the native `lvgl` module, published as `pydevices-lvgl`, with the same API as the MicroPython-compatible and CircuitPython-compatible builds.
 
 ```bash
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ \
-  --only-binary=:all: --platform android_21_arm64_v8a pydevices-lvgl
+python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
 ```
-
-```bash
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
-```
-
-**Upgrading from a wheel that still had `display_driver.py`:** upgrade
-`pydevices` and `pydevices-lvgl` in one `pip install -U pydevices pydevices-lvgl`.
-Upgraded on its own after a `pydevices` that already carries the file, pip's
-uninstall of the old `pydevices-lvgl` deletes the `display_driver.py` both
-wheels wrote; `pip install --force-reinstall --no-deps pydevices` puts it back.
-
-**Pyodide / micropip** (browser WASM; same project):
-
-```python
-import micropip
-await micropip.install("pydevices-lvgl", index_urls="https://test.pypi.org/simple/")
-```
-
-Pin a release:
-
-```bash
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl==9.5.25
-```
-
-`--extra-index-url https://pypi.org/simple/` lets pip fetch dependencies (e.g. setuptools) from PyPI. Use the same `pip` / `python` you will run (e.g. `pip.exe` with Windows 3.14).
-
-Quick check:
-
-```bash
-python -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
-```
-
-**WSL + Windows Python** — `pip.exe` / `python.exe` on PATH:
-
-```bash
-pip.exe install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl==9.5.25
-python.exe -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
-```
-
-To build from source instead, see **[building.md](docs/building.md)**.
-
-## Usage
-
-### 1. PyDevices Standard Quickstart (Recommended)
-
-When using `pydevices` board configs, pydevices' `display_driver` sets up the display, input devices, and background timer automatically. It ships in the `pydevices` wheel, not this one (it was here until 2026-10):
-
-```python
-import display_driver  # noqa: F401 - initializes display, input, and timer
-import lvgl as lv
-from display_driver import app
-
-scr = lv.screen_active()
-label = lv.label(scr)
-label.set_text("Hello from PyDevices LVGL!")
-label.center()
-
-# Standalone scripts: keep the process alive
-# Interactive REPL (python -i): app.run() returns immediately so the prompt is usable!
-app.run()
-```
-
-### 2. Standalone Raw LVGL Setup (Custom backends)
-
-For custom setups without a `pydevices` board config:
 
 ```python
 import lvgl as lv
 
 lv.init()
-
-disp = lv.display_create(240, 240)
+disp = lv.display_create(240, 120)
 disp.set_color_format(lv.COLOR_FORMAT.RGB565)
-buf = lv.draw_buf_create(240, 240, lv.COLOR_FORMAT.RGB565, 0)
-disp.set_draw_buffers(buf, None)
-disp.set_render_mode(lv.DISPLAY_RENDER_MODE.PARTIAL)
+buf = bytearray(240 * 120 * 2)
+disp.set_buffers(buf, None, len(buf), lv.DISPLAY_RENDER_MODE.FULL)
+flushed = []
+disp.set_flush_cb(lambda d, area, px: (flushed.append(area.get_width()), d.flush_ready()))
 
-scr = lv.screen_active()
-label = lv.label(scr)
-label.set_text("Hello")
-print(label.get_text())
+button = lv.button(lv.screen_active())
+button.center()
+label = lv.label(button)
+label.set_text("Hello from LVGL")
+button.add_event_cb(lambda e: print("clicked"), lv.EVENT.CLICKED, None)
+button.send_event(lv.EVENT.CLICKED, None)
 
-def on_clicked(event):
-    print("clicked", event.get_code())
-
-scr.add_event_cb(on_clicked, lv.EVENT.CLICKED, None)
-scr.send_event(lv.EVENT.CLICKED, None)
-
-lv.deinit()
+lv.tick_inc(50)
+lv.refr_now(disp)
+print(label.get_text(), "- drew", flushed[-1], "px wide")
 ```
 
+```text
+clicked
+Hello from LVGL - drew 240 px wide
+```
 
-## Type checking
+The picture at the top is the frame that program drew.
 
-Wheels install `lvgl.pyi` next to the `lvgl` extension module. For editable
-builds, `pip install -e .` copies `generated/lvgl.pyi` at build time.
+[Docs](https://lvgl.readthedocs.io/en/latest/get-started/install.html#cpython-with-lvgl-python) · [Examples](https://pydevices.github.io/pydevices-examples/pyscript/) · [Roadmap](ROADMAP.md)
 
-If your checker does not pick it up, set `python.analysis.stubPath` (Pylance) or
-`stubPath` (pyright) to a directory containing `lvgl.pyi`, or symlink
-`typings/lvgl/__init__.pyi` to this repo’s vendored `generated/lvgl.pyi`.
-
-### API style
-
-The binding follows the same naming as the MicroPython port where possible:
-
-| Pattern | Example |
-|---------|---------|
-| Symbol namespace | `lv.SYMBOL.OK`, `lv.SYMBOL.CANCEL` |
-| Enum namespaces | `lv.COLOR_FORMAT.RGB565`, `lv.DISPLAY_RENDER_MODE.PARTIAL` |
-| Widget types (callable) | `lv.obj()`, `lv.label(parent)`, `lv.button(parent)` |
-| Object methods | `label.set_text("…")`, `scr.add_event_cb(cb, lv.EVENT.CLICKED, None)` |
-| Module functions | `lv.display_create(240, 240)`, `lv.screen_active()` |
-| Struct methods | `event.get_code()` on `lv_event_t` wrappers |
-
-Struct-backed APIs, including displays, use methods consistently on all three runtimes (`disp.set_flush_cb(...)`, `disp.set_render_mode(...)`).
-
-### Limitations
-
-- **Unsafe C signatures are intentionally absent.** Variadic and unbounded pointer-to-pointer APIs are omitted unless the generator has a reviewed safe conversion.
-- **Target exceptions are explicit.** The shared API manifest records the small set of LVGL features unavailable on a particular runtime.
-- **A callback lives as long as its registration.** `add_event_cb(handler, ...)` holds your handler (and a `user_data` dict, if you pass one) until the widget is deleted or the event is removed; then the binding lets them go. Dropping your Python reference to the widget does not stop the callback while the widget exists, and a handler may delete its own widget. Callbacks set on an `lv.anim_t` live while the Python struct or a running copy of it exists; a timer's callback lives while the timer does.
-- **One thread drives LVGL.** Make every `lvgl` call on one thread, and let go of every `lvgl` object there. Other threads can run any Python that doesn't touch `lvgl`; on a free-threaded build they run in parallel with drawing. See [docs/threads.md](docs/threads.md).
-
-## Links
-
-- [Source](https://github.com/PyDevices/lvgl-python)
-- [Newcomer's guide](docs/newcomers.md) — repository architecture and contribution boundaries
-- [Issues](https://github.com/PyDevices/lvgl-python/issues)
-- [building.md](docs/building.md) — build from source
-- Related: [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings), [pydevices-examples](https://github.com/PyDevices/pydevices-examples)
-
-What's planned next is in [ROADMAP.md](ROADMAP.md).
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+OmniPython is made by [PyDevices](https://pydevices.com).
