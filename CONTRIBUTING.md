@@ -15,7 +15,7 @@ Good first changes are a focused regression test for a lifecycle or conversion
 bug, a fix to the docs, or a fix to the handwritten runtime when the generated
 API already offers the surface you want. The docs for this package live with
 [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings/tree/main/docs), and
-the [docs site](https://lvgl.readthedocs.io) is built from there.
+the [docs site](https://github.com/PyDevices/lvgl-bindings/blob/main/docs/index.md) is built from there.
 
 ## Where things are
 
@@ -52,7 +52,7 @@ lifecycle contract the runtime has to keep.
 
 ## Build and test
 
-You need only this clone and its `lvgl` submodule: [Build lvgl-python from source](https://lvgl.readthedocs.io/en/latest/guides/build-lvgl-python-from-source.html)
+You need only this clone and its `lvgl` submodule: [Build lvgl-python from source](https://github.com/PyDevices/lvgl-bindings/blob/main/docs/guides/build-lvgl-python-from-source.md)
 has the toolchain and the editable install. Then:
 
 ```bash
