@@ -48,7 +48,7 @@ archs = ["AMD64"]
 archs = ["arm64_v8a", "x86_64"]
 environment = { ANDROID_API_LEVEL = "21" }
 test-command = "python -c \"import lvgl as lv; lv.init(); lv.deinit()\""
-# Emulator tests are optional in CI; wheels are smoke-tested on device via pydevices-examples APK.
+# Emulator tests are optional in CI; wheels are smoke-tested on device via gallery APK.
 test-skip = "*"
 
 [[tool.cibuildwheel.overrides]]
