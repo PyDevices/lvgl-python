@@ -15,6 +15,9 @@ set -euo pipefail
 
 JPEGIO_REPO="${JPEGIO_REPO:-https://github.com/PyDevices/micropython-pydevices.git}"
 JPEGIO_PATH="modules/jpegio/src"
+# TJpgDec sits in third_party/tjpgd/ (with its LICENSE and ORIGIN.txt) from
+# the commit that gave jpegio a third_party folder, and in src/tjpgd/ before it.
+TJPGD_PATHS=("modules/jpegio/third_party/tjpgd" "${JPEGIO_PATH}/tjpgd")
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -53,14 +56,25 @@ echo "Fetching ${JPEGIO_REPO} @ ${REF}..."
 git clone --filter=blob:none --no-checkout "${JPEGIO_REPO}" "${TMP}/src"
 git -C "${TMP}/src" fetch origin "$REF"
 RESOLVED_REF=$(git -C "${TMP}/src" rev-parse 'FETCH_HEAD^{commit}')
+TJPGD_PATH=
+for path in "${TJPGD_PATHS[@]}"; do
+    if git -C "${TMP}/src" cat-file -e "${RESOLVED_REF}:${path}" 2>/dev/null; then
+        TJPGD_PATH=$path
+        break
+    fi
+done
+if [[ -z "$TJPGD_PATH" ]]; then
+    echo "Error: no TJpgDec at ${RESOLVED_REF} (looked in ${TJPGD_PATHS[*]})" >&2
+    exit 1
+fi
 git -C "${TMP}/src" checkout "$RESOLVED_REF" -- \
-    "${JPEGIO_PATH}/lvgl_decoder.c" "${JPEGIO_PATH}/lvgl_decoder.h" "${JPEGIO_PATH}/tjpgd"
+    "${JPEGIO_PATH}/lvgl_decoder.c" "${JPEGIO_PATH}/lvgl_decoder.h" "$TJPGD_PATH"
 
 DEST="${SOURCE_REPO}/src/jpegio"
 rm -rf "$DEST"
 mkdir -p "$DEST/tjpgd"
 cp "${TMP}/src/${JPEGIO_PATH}/lvgl_decoder.c" "${TMP}/src/${JPEGIO_PATH}/lvgl_decoder.h" "$DEST/"
-cp "${TMP}/src/${JPEGIO_PATH}/tjpgd/"* "$DEST/tjpgd/"
+cp "${TMP}/src/${TJPGD_PATH}/"* "$DEST/tjpgd/"
 printf '%s\n' "$RESOLVED_REF" > "${SOURCE_REPO}/JPEGIO_COMMIT"
 
 echo
